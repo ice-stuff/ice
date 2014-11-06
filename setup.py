@@ -10,7 +10,10 @@ setup(
 
     # Packages
     packages=find_packages(),
-    zip_safe=False,                     # does not produce the EGG file
+    # zip_safe=False,                     # does not produce the EGG file
+    scripts=[
+        "bin/ice-shell"
+    ],
 
     # Dependencies
     install_requires=[
