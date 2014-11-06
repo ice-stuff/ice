@@ -1,22 +1,22 @@
-# iCE: Interactive cloud experiments and monitoring
+# iCE: Interactive cloud experimentation and monitoring tool
 
 iCE is a tool based on the IPython approach, to manage, run and monitor
 experiments on opportunistically available cloud instances (spawned VMs or
 LxC containers).
 
-# Versioning scheme
+## Versioning scheme
 
 A strict scheme for selecting versions has been adopted. It is based
 on the rules described in the [Semantic versioning 2.0.0](http://semver.org)
 manifesto.
 
-# Code format
+## Code format
 
 * Spaces are used for tabs
 * Tab size is 4 spaces
 * Wrapping is done by the author at 80 characters
 
-## Python
+### Python
 
 As can be seen bellow, Python is the language with the largest
 percentage of lines of code. We follow the
@@ -31,11 +31,11 @@ Among others it contains:
 * **Constants**:                       ``UPPER_CASE_WITH_UNDERSCORES``
 * **Classes**:                         ``CamelCase``
 
-### Special cases
+#### Special cases
 
 * **Avoid keyword conflict**:           Append a ``_`` to the name
 
-### Doc strings
+#### Doc strings
 
 Doc string are used to document functions, classes and methods. We
 are using the Sphinx standard:
@@ -71,7 +71,7 @@ def a_function(a, b, c=5):
     return (a + b) * c
 ```
 
-## Configuration files (INI)
+### Configuration files (INI)
 
 Configuration is handled by INI files. The INI sections and INI options
 do follow the snace case format:
