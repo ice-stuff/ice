@@ -14,6 +14,7 @@ setup(
 
     # Dependencies
     install_requires=[
-        "eve>=0.4"
+        "eve>=0.4",
+        "IPython>=2.3.0"
     ]
 )
