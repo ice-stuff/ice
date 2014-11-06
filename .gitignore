@@ -1,0 +1,7 @@
+._*
+.DS_STORE
+.DS_Store
+temp
+*.pyc
+*.pyo
+etc/local.d/*
