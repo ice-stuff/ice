@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 
 setup(
@@ -9,7 +10,9 @@ setup(
     description="Interactive cloud experiments and monitoring",
 
     # Packages
-    packages=find_packages(),
+    packages=find_packages(
+        os.path.join(os.path.dirname(__file__), 'src')
+    ),
     # zip_safe=False,                     # does not produce the EGG file
     scripts=[
         "bin/ice-shell"
