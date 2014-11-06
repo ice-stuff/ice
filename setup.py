@@ -1,10 +1,6 @@
 import os
 from setuptools import setup, find_packages
 
-# Path defs
-base_path = os.path.dirname(__file__)
-
-# Register setup
 setup(
     # Metadata
     name="iCE",
@@ -17,7 +13,7 @@ setup(
     packages=find_packages(),
     # zip_safe=False,                     # does not produce the EGG file
     scripts=[
-        os.path.join(base_path, 'bin', 'ice-shell')
+        os.path.join(os.path.dirname(__file__), 'bin', 'ice-shell')
     ],
 
     # Dependencies
