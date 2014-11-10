@@ -38,7 +38,7 @@ class Configuration(object):
 
     @classmethod
     def get_configuration(cls, component=None):
-        etc_path = os.environ.get("ICE_CONFIG_PATH", "/etc/iCE")
+        etc_path = os.environ.get("ICE_CONFIG_PATH", "/etc/ice")
         cfg = ConfigParser.SafeConfigParser()
         cfg.read(os.path.join(etc_path, "default.d", "iCE.ini"))
         if component:
