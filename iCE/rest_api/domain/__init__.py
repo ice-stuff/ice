@@ -10,21 +10,21 @@ class Domain(object):
     #
 
     ENDPOINT = None
-    ITEM_TITLE = None
-    RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
-    ITEM_METHODS = ['GET', 'DELETE', 'PUT', 'PATCH']
+    _ITEM_TITLE = None
+    _RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
+    _ITEM_METHODS = ['GET', 'DELETE', 'PUT', 'PATCH']
 
     @classmethod
     def get_config(cls):
         config = {}
 
         # Paths
-        if cls.ITEM_TITLE is not None:
-            config['item_title'] = cls.ITEM_TITLE
+        if cls._ITEM_TITLE is not None:
+            config['item_title'] = cls._ITEM_TITLE
 
         # HTTP verbs
-        config['item_methods'] = cls.ITEM_METHODS
-        config['resource_methods'] = cls.RESOURCE_METHODS
+        config['item_methods'] = cls._ITEM_METHODS
+        config['resource_methods'] = cls._RESOURCE_METHODS
 
         # Add schema
         schema = cls._get_schema()

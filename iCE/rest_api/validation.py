@@ -35,7 +35,7 @@ class MyValidator(Validator):
         # Check parts
         for i in range(1, 4):
             part = int(m.group(i))
-            if part <= 0 or part > 255:
+            if part < 0 or part > 255:
                 self._error(field, ERROR_BAD_TYPE % 'Ip')
 
     def _validate_type_url(self, field, value):

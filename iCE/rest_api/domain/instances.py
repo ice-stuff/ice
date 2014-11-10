@@ -1,4 +1,5 @@
 from . import Domain
+from iCE.entities import Instance
 
 
 class InstancesDomain(Domain):
@@ -7,40 +8,69 @@ class InstancesDomain(Domain):
     #
 
     ENDPOINT = 'instances'
-    ITEM_TITLE = 'instance'
-    ITEM_METHODS = ['GET', 'DELETE']
+    _ITEM_TITLE = 'instance'
+    _ITEM_METHODS = ['GET', 'DELETE']
 
     @classmethod
     def _get_schema(cls):
         return {
             # Networking
-            'private_ip_address': {
+            'networks': {
+                'type': 'list',
+                'schema': {
+                    'type': 'dict',
+                    'schema': {
+                        'addr': {
+                            'type': 'string',
+                            'required': True
+                        },
+                        'iface': {
+                            'type': 'string',
+                            'required': False
+                        },
+                        'bcast_addr': {
+                            'type': 'ip',
+                            'required': False
+                        }
+                    }
+                },
+            },
+
+            # Public networking
+            'public_ip_addr': {
                 'required': True,
                 'type': 'ip'
             },
-
-            'public_ip_address': {
-                'required': False,
-                'type': 'ip'
+            'public_reverse_dns': {
+                'required': True,
+                'type': 'string'
             },
 
             # Cloud info
-            'cloud_endpoint': {
+            'cloud_id': {
                 'required': False,
                 'type': 'url'
             },
-            'security_group_id': {
+            'vpc_id': {
                 'required': False,
                 'type': 'string'
             },
 
             # SSH options
-            'ssh_user': {
+            'ssh_username': {
                 'required': False,
+                'type': 'string',
+                'default': 'root'
+            },
+            'ssh_authorized_fingerprint': {
+                'required': True,
                 'type': 'string'
             },
-            'ssh_key_fingerprint': {
+
+            # Status
+            'status': {
                 'required': False,
-                'type': 'string'
+                'type': 'string',
+                'default': 'running'
             }
         }
