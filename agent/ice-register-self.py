@@ -34,6 +34,7 @@ import socket
 
 ___version__ = '0.0.1'
 IS_ROOT = False  # is the user root?
+INSTANCE_ID_PATHS = ['/var/run/ice_instance_id']
 
 
 #
@@ -41,6 +42,13 @@ IS_ROOT = False  # is the user root?
 #
 
 def _run_sudo(cmd):
+    """
+    Runs the provided system command with sudo if user is sudoer and not root.
+
+    :param str cmd:
+    :rtype: tuple
+    :return: A tuple with stdout and stderr contents.
+    """
     global IS_ROOT
     if IS_ROOT:
         return _run(cmd)
@@ -48,6 +56,13 @@ def _run_sudo(cmd):
 
 
 def _run(cmd):
+    """
+    Runs the provided system command.
+
+    :param str cmd:
+    :rtype: tuple
+    :return: A tuple with stdout and stderr contents.
+    """
     args = cmd.split()
     proc = subprocess.Popen(
         args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -65,12 +80,27 @@ def _run(cmd):
 #
 
 def key_to_fingerprint(key):
+    """
+    Generates the fingerprint of provided public SSH key.
+
+    :param str key: SSH public key.
+    :rtype: str
+    :return: The fingerprint of provided SSH key.
+    """
     key = base64.b64decode(key.strip().encode('ascii'))
     fp_plain = hashlib.md5(key).hexdigest()
     return ':'.join(a + b for a, b in zip(fp_plain[::2], fp_plain[1::2]))
 
 
 def _extract_first_fingerprint(file_path):
+    """
+    Returns the fingerprint of the first public SSH key, found in the file
+    indicated by the provided `file_path`.
+
+    :param str file_path: The `authorized_keys` file to read.
+    :rtype: str
+    :return: The fingerprint of the first public SSH key found, or None.
+    """
     # Open file
     if not os.path.isfile(file_path):
         return None
@@ -324,6 +354,40 @@ def _make_request(cmd):
 # Helpers: run request
 #
 
+def _parse_urllib_resp(urllib_resp):
+    """
+    Parses response object to python dict.
+
+    :param urllib2.HTTPResponse urllib_resp: The urllib2 response.
+    :rtype: dict
+    :return: Returns the response dictionary after parsing JSON or None in case
+        of failure.
+    """
+    try:
+        resp = json.loads(urllib_resp.read())
+        return resp
+    except ValueError as err:
+        print '[ERROR] Failed to parse response: %s' % (str(err))
+        return None
+
+
+def _make_urllib_request(cmd, ice_req):
+    """
+    Makes a urllib2.Request objects.
+
+    :param dict cmd: The command.
+    :param dict ice_req: The request.
+    :rtype: urllib2.Request
+    :return: Returns the request instance.
+    """
+    req = urllib2.Request(cmd['apiEndpoint'] + '/v1/instances')
+    req.add_data(json.dumps(ice_req))
+    req.add_header('Content-Type', 'application/json')
+    req.add_header('User-Agent', 'iCE Agent/%s' % ___version__)
+    req.add_header('Experiment-Key', hashlib.sha1(cmd['experimentKey']))
+    return req
+
+
 def _run_reqest(cmd, ice_req):
     """
     Runs the HTTP request.
@@ -335,23 +399,19 @@ def _run_reqest(cmd, ice_req):
     """
     # Make the request
     try:
-        req = urllib2.Request(cmd['apiEndpoint'] + '/v1/instances')
-        req.add_data(json.dumps(ice_req))
-        req.add_header('Content-Type', 'application/json')
-        req.add_header('User-Agent', 'iCE Agent/%s' % ___version__)
-        req.add_header('Experiment-Key', hashlib.sha1(cmd['experimentKey']))
-        success_resp = urllib2.urlopen(req)
+        urllib_req = _make_urllib_request(cmd, ice_req)
+        urllib_resp = urllib2.urlopen(urllib_req)
     except ValueError as err:
         print '[ERROR] Nasty error: %s' % str(err)
         return None
     except urllib2.HTTPError as err_resp:
         print '[ERROR] HTTP error: %s' % str(err_resp)
-        # Parse error
-        try:
-            resp = json.loads(err_resp.read())
-        except ValueError as err:
-            print '[ERROR] Failed to parse error response: %s' % (str(err))
+
+        # Parse error response
+        resp = _parse_urllib_resp(err_resp)
+        if resp is None:
             return None
+
         # Print more errors
         print '[ERROR] %s' % resp['_error']['message']
         if '_issues' in resp:
@@ -360,13 +420,31 @@ def _run_reqest(cmd, ice_req):
         return None
 
     # Parse response
-    try:
-        resp = json.loads(success_resp.read())
-    except ValueError as err:
-        print '[ERROR] Failed to parse response: %s' % (str(err))
+    resp = _parse_urllib_resp(urllib_resp)
+    if resp is None:
         return None
 
     return resp['_id']
+
+
+def _write_id(instance_id):
+    """
+    Writes iCE instance id to file system.
+
+    :param str instance_id: The iCE instance id.
+    """
+    for p in INSTANCE_ID_PATHS:
+        # Try opening the file
+        f = open(p, 'w')
+        if f is None:
+            print '[ERROR] Failed to write iCE instance it to `%s`!' % p
+            continue
+
+        # Write
+        f.write(instance_id)
+        f.close()
+        print '[INFO] The iCE instance id was successfully written to `%s`.' \
+            % (p)
 
 #
 # Main
@@ -399,18 +477,6 @@ if __name__ == '__main__':
 
     # Print info
     print '[INFO] Instance is registered with id = %s' % instance_id
-    paths = ['/var/run/ice_instance_id']
-    for p in paths:
-        # Try opening the file
-        f = open(p, 'w')
-        if f is None:
-            print '[ERROR] Failed to write iCE instance it to `%s`!' % p
-            continue
-
-        # Write
-        f.write(instance_id)
-        f.close()
-        print '[INFO] The iCE instance id was successfully written to `%s`.' \
-            % (p)
+    _write_id(instance_id)
 
     sys.exit(0)
