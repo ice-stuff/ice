@@ -4,6 +4,48 @@ iCE is a tool based on the IPython approach, to manage, run and monitor
 experiments on opportunistically available cloud instances (spawned VMs or
 LxC containers).
 
+## RESTful API
+
+### GET /v1/instances
+
+Returns a list of registered instances.
+
+### GET /v1/instances/<Instance UUID>
+
+### POST /v1/instances
+
+Registers an instance.
+
+#### Request body
+
+The request is in JSON and has following members:
+
+##### Networking
+
+* `networks`: A list of objects with the following attributes:
+    * *optional*, `iface`: The Linux network interface (e.g.: `eth0`) of the
+        network.
+    * `addr`: The IP(v4) address (e.g.: `192.168.22.123`). It can also include
+        the network mask (e.g.: `192.168.22.123/24`).
+    * *optional*, `bcast_addr`: The broadcast address (e.g.: `192.168.1.255`).
+
+##### Cloud information
+
+* *optional*, `cloud_id`: Can use something arbitrary (e.g.: `EC2-AWS-Ireland`).
+    If it is not set, the domain name of the reverse DNS entry of the external
+    IP will be used (e.g.: `cern.ch`).
+* *optional*, `vpc_id`: If this is known to the instance, otherwise can be
+    omitted. Its format depends on the cloud provider.
+
+##### SSH information
+
+* *optional*, `ssh_username`: The user name for which the SSH key is
+    authorized. If omitted `root` is assumed.
+* `ssh_authorized_fingerprint`: The fingerprint of the authorized SSH key,
+    e.g.: `74:12:e2:0e:ca:75:6b:65:22:41:f2:fb:64:5f:5a:7f`.
+
+##### Contextualization script
+
 ## Versioning scheme
 
 A strict scheme for selecting versions has been adopted. It is based
