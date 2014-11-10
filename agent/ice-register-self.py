@@ -25,6 +25,7 @@ import hashlib
 import getopt
 import urllib2
 import json
+import socket
 
 
 #
@@ -95,7 +96,7 @@ def _extract_first_fingerprint(file_path):
 
 
 #
-# Helpers: steps
+# Helpers: request building
 #
 
 def _is_root():
@@ -163,10 +164,11 @@ def _parse_cmd(args):
     return ret_val
 
 
-def _extract_networks():
+def _extract_networks(cmd):
     """
     Extracts list of IPv4 networks.
 
+    :param dict cmd: The command.
     :rtype: list
     :return: list of tuples `(<Interface>, <Network>, <Broadcast address>)`.
     """
@@ -183,11 +185,33 @@ def _extract_networks():
     return ret_val
 
 
-def _extract_ssh_info():
+def _get_public_network(cmd):
+    """
+    Gets public network information.
+
+    :param dict cmd: The command.
+    :rtype: tuple
+    :return: A tuple with `(<Public network IP address>,
+        <Public IP address reverse DNS>)`.
+    """
+    # Get public IP address
+    public_ip_addr = urllib2.urlopen(cmd['apiEndpoint'] + '/my_ip').read()
+
+    # Get reverse DNS entry
+    r = socket.gethostbyaddr(public_ip_addr)
+    if r is None:
+        return (public_ip_addr, None)
+    hostname, _a, _b = r
+
+    return (public_ip_addr, hostname)
+
+
+def _extract_ssh_info(cmd):
     """
     Extracts the user name of the user that has an SSH public key installed,
     and the fingerprint of than key.
 
+    :param dict cmd: The command.
     :rtype: tuples
     :return: An (<SSH user name>, <SSH authorized key fingerprint>) tuple.
     """
@@ -218,10 +242,11 @@ def _extract_ssh_info():
     return None
 
 
-def _get_cloud_info():
+def _get_cloud_info(cmd):
     """
     Gets cloud information.
 
+    :param dict cmd: The command.
     :rtype: tuple
     :return: A tuple with (<Cloud id>, <VPC id>)
     """
@@ -232,11 +257,18 @@ def _get_cloud_info():
     return cloud_id, vpc_id
 
 
-def _make_request():
+def _make_request(cmd):
+    """
+    Builds the request for the registration.
+
+    :param dict cmd: The command.
+    :rtype: dict
+    :return: The request dictionary.
+    """
     ret_val = {}
 
     #  Network information
-    networks = _extract_networks()
+    networks = _extract_networks(cmd)
     if networks is None:
         print '[ERROR] Failed to extract networking info...'
         return None
@@ -245,14 +277,23 @@ def _make_request():
         iface, addr, bcast = n
         ret_val['networks'].append(
             {
-                'interface': iface,
-                'address': addr,
-                'broadcast': bcast
+                'iface': iface,
+                'addr': addr,
+                'bcast_addr': bcast
             }
         )
 
+    # Public network configuration
+    r = _get_public_network(cmd)
+    if r is None:
+        print '[ERROR] Failed to get public network info...'
+        return None
+    public_ip_addr, public_reverse_dns = r
+    ret_val['public_ip_addr'] = public_ip_addr
+    ret_val['public_reverse_dns'] = public_reverse_dns
+
     # SSH information
-    r = _extract_ssh_info()
+    r = _extract_ssh_info(cmd)
     if r is None:
         print '[ERROR] Failed to extract SSH info...'
         return None
@@ -262,18 +303,70 @@ def _make_request():
     ret_val['ssh_authorized_fingerprint'] = ssh_authorized_fingerprint
 
     # Cloud information
-    info = _get_cloud_info()
+    info = _get_cloud_info(cmd)
     if info is None:
         print '[ERROR] Failed to get cloud info...'
         return None
     cloud_id, vpc_id = info
     if cloud_id is not None:
         ret_val['cloud_id'] = cloud_id
+    elif public_reverse_dns is not None:
+        hostname_parts = public_reverse_dns.split('.')
+        if len(hostname_parts) > 1:
+            ret_val['cloud_id'] = '.'.join(hostname_parts[1:])
     if vpc_id is not None:
         ret_val['vpc_id'] = vpc_id
 
     return ret_val
 
+
+#
+# Helpers: run request
+#
+
+def _run_reqest(cmd, ice_req):
+    """
+    Runs the HTTP request.
+
+    :param dict cmd: The command.
+    :param dict ice_req: The request.
+    :rtype: string
+    :return: Returns instance id or None in case of failure.
+    """
+    # Make the request
+    try:
+        req = urllib2.Request(cmd['apiEndpoint'] + '/v1/instances')
+        req.add_data(json.dumps(ice_req))
+        req.add_header('Content-Type', 'application/json')
+        req.add_header('User-Agent', 'iCE Agent/%s' % ___version__)
+        req.add_header('Experiment-Key', hashlib.sha1(cmd['experimentKey']))
+        success_resp = urllib2.urlopen(req)
+    except ValueError as err:
+        print '[ERROR] Nasty error: %s' % str(err)
+        return None
+    except urllib2.HTTPError as err_resp:
+        print '[ERROR] HTTP error: %s' % str(err_resp)
+        # Parse error
+        try:
+            resp = json.loads(err_resp.read())
+        except ValueError as err:
+            print '[ERROR] Failed to parse error response: %s' % (str(err))
+            return None
+        # Print more errors
+        print '[ERROR] %s' % resp['_error']['message']
+        if '_issues' in resp:
+            for key, msg in resp['_issues'].items():
+                print "* '%s': %s" % (key, msg)
+        return None
+
+    # Parse response
+    try:
+        resp = json.loads(success_resp.read())
+    except ValueError as err:
+        print '[ERROR] Failed to parse response: %s' % (str(err))
+        return None
+
+    return resp['_id']
 
 #
 # Main
@@ -293,33 +386,31 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Get the request
-    ice_req = _make_request()
-    if len(ice_req) == 0:
+    ice_req = _make_request(cmd)
+    if ice_req is None:
         print '[ERROR] Failed to build the request!'
         sys.exit(1)
 
-    # Make the request
-    try:
-        req = urllib2.Request(
-            cmd['apiEndpoint'],
-            json.dumps(ice_req),
-            {
-                'Content-Type': 'application/json',
-                'User-Agent': 'iCE Agent/%s' % ___version__,
-                'Experiment-Key': hashlib.sha1(cmd['experimentKey'])
-            }
-        )
-        http_req = urllib2.urlopen(req)
-    except ValueError as err:
-        print '[ERROR] Nasty error: %s' % str(err)
-        sys.exit(1)
-    except urllib2.HTTPError as err:
-        print '[ERROR] HTTP error: %s' % str(err)
+    # Run the request
+    instance_id = _run_reqest(cmd, ice_req)
+    if instance_id is None:
+        print '[ERROR] Request error!'
         sys.exit(1)
 
-    import pprint
-    pprint.pprint(cmd)
-    pprint.pprint(ice_req)
-    pprint.pprint(http_req)
+    # Print info
+    print '[INFO] Instance is registered with id = %s' % instance_id
+    paths = ['/var/run/ice_instance_id']
+    for p in paths:
+        # Try opening the file
+        f = open(p, 'w')
+        if f is None:
+            print '[ERROR] Failed to write iCE instance it to `%s`!' % p
+            continue
+
+        # Write
+        f.write(instance_id)
+        f.close()
+        print '[INFO] The iCE instance id was successfully written to `%s`.' \
+            % (p)
 
     sys.exit(0)
