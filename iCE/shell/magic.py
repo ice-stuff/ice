@@ -26,7 +26,7 @@ MAGICS_HELP = {
 def print_help(magics, definition):
     # Definition is defined :)
     if definition != '':
-        if MAGICS_HELP.has_key(definition):
+        if definition in MAGICS_HELP:
             print '%s\n Usage: %s %s' % (
                 MAGICS_HELP[definition]['description'],
                 definition, MAGICS_HELP[definition]['usage']
