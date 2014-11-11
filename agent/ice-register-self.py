@@ -225,7 +225,7 @@ def _get_public_network(cmd):
         <Public IP address reverse DNS>)`.
     """
     # Get public IP address
-    public_ip_addr = urllib2.urlopen(cmd['apiEndpoint'] + '/my_ip').read()
+    public_ip_addr = urllib2.urlopen(cmd['apiEndpoint'] + '/v1/my_ip').read()
 
     # Get reverse DNS entry
     r = socket.gethostbyaddr(public_ip_addr)
