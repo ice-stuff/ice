@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-from iCE.rest_api import API
+from iCE.rest_api import APIServer
 
 if __name__ == "__main__":
-    api = API()
+    api = APIServer()
     api.run()

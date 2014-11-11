@@ -6,7 +6,7 @@ from .domain import InstancesDomain
 from flask import request
 
 
-class API(Eve):
+class APIServer(Eve):
     #
     # CHANGE ME: Extend this list to add domains
     #
@@ -31,6 +31,8 @@ class API(Eve):
             'API_VERSION': 'v1',
             # Disable HATEOAS
             'HATEOAS': False,
+            # Disable If-Match headers
+            'IF_MATCH': False,
             # Debug mode
             'DEBUG': in_debug,
             # Logging
@@ -56,7 +58,9 @@ class API(Eve):
             self._set_domain_hooks(dom)
 
         # Other rules
-        self.add_url_rule('/my_ip', 'handle_get_my_ip', self.handle_get_my_ip)
+        self.add_url_rule(
+            '/v1/my_ip', 'handle_get_my_ip', self.handle_get_my_ip
+        )
 
     def run(self, host=None, port=None, debug=None, **options):
         """

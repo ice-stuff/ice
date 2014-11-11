@@ -1,5 +1,4 @@
 from . import Domain
-from iCE.entities import Instance
 
 
 class InstancesDomain(Domain):
@@ -72,5 +71,10 @@ class InstancesDomain(Domain):
                 'required': False,
                 'type': 'string',
                 'default': 'running'
+            },
+            'failed_pings_count': {
+                'required': False,
+                'type': 'integer',
+                'default': 0
             }
         }

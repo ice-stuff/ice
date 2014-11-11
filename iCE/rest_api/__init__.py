@@ -1,1 +1,1 @@
-from .eveapp import API
+from .eveapp import APIServer
