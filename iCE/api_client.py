@@ -41,7 +41,7 @@ class APIClient:
     # Getting IP address
     #
 
-    def getMyIP(self):
+    def get_my_ip(self):
         """
         Gets the public IP address of the caller.
 
@@ -54,7 +54,7 @@ class APIClient:
     # Instance handling
     #
 
-    def submitInstance(self, inst):
+    def submit_instance(self, inst):
         """
         Submits a new instance.
 
@@ -62,11 +62,11 @@ class APIClient:
         :rtype: str
         :return: The instance id on success and `None` on failure.
         """
-        resp = self._call('instances', 'POST', inst.toDict())
+        resp = self._call('instances', 'POST', inst.to_dict())
         inst.id = resp['_id']
         return inst.id
 
-    def deleteInstance(self, instId):
+    def delete_instance(self, instId):
         """
         Deletes an instance from the backend.
 
@@ -77,7 +77,7 @@ class APIClient:
         resp = self._call('instances/%s' % instId, 'DELETE')
         return (resp is not None)
 
-    def getInstancesList(self):
+    def get_instances_list(self):
         """
         Returns a list of instances.
 
@@ -96,7 +96,7 @@ class APIClient:
     # Helpers
     #
 
-    def _getURL(self, suffix):
+    def _get_url(self, suffix):
         """
         Compiles the full URL of the resource.
 
@@ -145,7 +145,7 @@ class APIClient:
 
         # Run the request
         try:
-            resp = method(self._getURL(url_suffix), **args)
+            resp = method(self._get_url(url_suffix), **args)
         except RequestException as err:
             raise APIClient.APIException(err)
         if resp.status_code / 100 != 2:

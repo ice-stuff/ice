@@ -6,7 +6,7 @@ class Entity(object):
         # ETag
         self.etag = kwargs.get('_etag', None)
 
-    def toDict(self):
+    def to_dict(self):
         _dict = {}
         for key, value in self.__dict__.items():
             if value is None:
