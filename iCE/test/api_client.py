@@ -1,6 +1,6 @@
 from unittest import TestCase
-from iCE import APIClient
-from iCE.entities import Instance
+from .. import APIClient
+from ..entities import Instance
 
 
 class APIClientTest(TestCase):
