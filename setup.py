@@ -20,6 +20,7 @@ setup(
     install_requires=[
         "eve>=0.4",
         "IPython>=2.3.0",
-        "requests>=1.2.0"
+        "requests>=1.2.0",
+        "fabric>=1.10.0"
     ]
 )
