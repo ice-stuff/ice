@@ -1,4 +1,25 @@
-class Instance(object):
+class Entity(object):
+
+    def __init__(self, **kwargs):
+        # MongoDB stuff
+        self.id = kwargs.get('_id', None)
+        # ETag
+        self.etag = kwargs.get('_etag', None)
+
+    def toDict(self):
+        _dict = {}
+        for key, value in self.__dict__.items():
+            if value is None:
+                continue
+            if key.startswith('_'):
+                continue
+            if key in ['id', 'etag']:  # TODO
+                continue
+            _dict[key] = value
+        return _dict
+
+
+class Instance(Entity):
     #
     # Status attribute values
     #
@@ -13,8 +34,7 @@ class Instance(object):
     #
 
     def __init__(self, **kwargs):
-        # Identification
-        self.id = None
+        super(Instance, self).__init__(**kwargs)
 
         # Networking
         self.networks = []
@@ -22,11 +42,15 @@ class Instance(object):
             my_net = {
                 'addr': net['addr']
             }
-            if net.has('iface'):
+            if 'iface' in net:
                 my_net['iface'] = net['iface']
-            if net.has('bcast_addr'):
+            if 'bcast_addr' in net:
                 my_net['bcast_addr'] = net['bcast_addr']
             self.networks.append(my_net)
+
+        # Public network
+        self.public_ip_addr = kwargs['public_ip_addr']
+        self.public_reverse_dns = kwargs['public_reverse_dns']
 
         # Cloud info
         self.cloud_id = kwargs.get('cloud_id', None)
@@ -39,3 +63,17 @@ class Instance(object):
         # Instance status
         self.failed_pings_count = 0
         self.status = Instance.STATUS_RUNNING
+
+    #
+    # Setters
+    #
+
+    def add_network(self, addr, iface=None, bcast_addr=None):
+        my_net = {
+            'addr': addr
+        }
+        if iface is not None:
+            my_net['iface'] = iface
+        if bcast_addr is not None:
+            my_net['bcast_addr'] = bcast_addr
+        self.networks.append(my_net)
