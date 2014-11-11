@@ -20,7 +20,7 @@ class APIServer(Eve):
     def __init__(self, *args, **kwargs):
         # iCE
         self.cfg = Configuration.get_configuration()
-        in_debug = self.cfg.get_bool('api', 'debug', False)
+        in_debug = self.cfg.get_bool('api_server', 'debug', False)
         self.apiLogger = logging.get_logger('ice')
         if in_debug:
             self.apiLogger.setLevel(logging.DEBUG)
@@ -79,9 +79,9 @@ class APIServer(Eve):
                         information.
         """
         if host is None:
-            host = self.cfg.get_var('api', 'host', '0.0.0.0')
+            host = self.cfg.get_var('api_server', 'host', '0.0.0.0')
         if port is None:
-            port = self.cfg.get_int('api', 'port', 5000)
+            port = self.cfg.get_int('api_server', 'port', 5000)
         Eve.run(self, host, port, debug, **options)
 
     #
