@@ -1,34 +1,15 @@
 #!/usr/bin/env python2.7
-import sys
-from iCE.shell import check_nested, make_config, make_embedable_shell
+from iCE.shell import Shell
 from iCE.shell.magic import *
 
+if __name__ == '__main__':
+    # Initialize shell
+    s = Shell()
 
-#
-# Build the shell
-#
+    # Prepare the environment:
+    #   * load Python modules that should be public for the IPython shell
+    s.add_magic_function('load_exp', load_experiment)
+    s.add_magic_function('h', print_help)
 
-# Is IPython nested?
-if check_nested():
-    print "You cannot run iCE from inside IPython shell!"
-    sys.exit(1)
-
-# Build the IPython shell
-shell = make_embedable_shell(
-    make_config()
-)
-
-
-#
-# Prepare the environment:
-#   * load Python modules that should be public for the IPython shell
-#
-
-shell.define_magic('load_exp', load_experiment)
-shell.define_magic('h', print_help)
-
-#
-# Run the shell
-#
-
-shell()
+    # Run the shell
+    s.start()
