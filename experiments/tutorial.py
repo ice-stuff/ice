@@ -1,9 +1,11 @@
 #
 # A test experiment
 #
-from fabric.api import task, run
+from fabric.api import run, parallel, env
 
 
-@task
-def get_system_info():
+@parallel
+def get_system_info(instances):
+    """Gets system information."""
     run('uname -a')
+    return env.host_string
