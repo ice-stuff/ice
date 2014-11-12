@@ -1,7 +1,7 @@
 from flask import request
 from eve import Eve
-from iCE import config, logging
-from iCE.rest_api import validation, domain
+from ice import config, logging
+from ice.rest_api import validation, domain
 
 
 class APIServer(Eve):
@@ -100,7 +100,7 @@ class APIServer(Eve):
             'mongodb', 'password', ''
         )
         self.settings['MONGO_DBNAME'] = self.cfg.get_var(
-            'mongodb', 'db_name', 'iCE'
+            'mongodb', 'db_name', 'ice'
         )
 
     #

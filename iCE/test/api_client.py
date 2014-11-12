@@ -1,11 +1,11 @@
 from unittest import TestCase
-import iCE
+import ice
 
 
 class APIClientTest(TestCase):
 
     def setUp(self):
-        self.api = iCE.APIClient('localhost', 5000)
+        self.api = ice.APIClient('localhost', 5000)
 
     def tearDown(self):
         del self.api
@@ -25,7 +25,7 @@ class APIClientTest(TestCase):
     def _test_submit_instance(self):
         instances = self.api.get_instances_list()
 
-        inst = iCE.Instance(
+        inst = ice.Instance(
             cloud_id='AWS',
             ssh_authorized_fingerprint='corrupted',
             public_ip_addr='56.78.33.55',

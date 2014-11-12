@@ -1,4 +1,4 @@
-from iCE.rest_api.domain import Domain
+from ice.rest_api.domain import Domain
 
 
 class InstancesDomain(Domain):

@@ -1,7 +1,7 @@
 import json
 import requests
 from requests import exceptions
-from iCE import entities
+from ice import entities
 
 ___version__ = '0.0.1'
 

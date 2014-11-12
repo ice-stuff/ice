@@ -1,3 +1,4 @@
+"""Configuration parser and class-wrapper."""
 import os
 import re
 import ConfigParser
@@ -38,12 +39,19 @@ class Configuration(object):
 
     @classmethod
     def get_configuration(cls, component=None):
+        """
+        Returns the `config.Configuration` class instance.
+
+        :param str component: Set to load a specific component (INI file).
+        :rtype: `config.Configuration`
+        :return: Configuration class instance.
+        """
         etc_path = os.environ.get("ICE_CONFIG_PATH", "/etc/ice")
         cfg = ConfigParser.SafeConfigParser()
-        cfg.read(os.path.join(etc_path, "default.d", "iCE.ini"))
+        cfg.read(os.path.join(etc_path, "default.d", "ice.ini"))
         if component:
             cfg.read(os.path.join(etc_path, "default.d", "%s.ini" % component))
-        cfg.read(os.path.join(etc_path, "local.d", "iCE.ini"))
+        cfg.read(os.path.join(etc_path, "local.d", "ice.ini"))
         if component:
             cfg.read(os.path.join(etc_path, "local.d", "%s.ini" % component))
         return cls(cfg)
@@ -66,6 +74,20 @@ class Configuration(object):
                 default_value=None,
                 required=False,
                 type=str):
+        """
+        Generic method the fetch an option.
+
+        :param str section: Configuration section.
+        :param str option: Option name.
+        :param mixed default_value: The default value, if option is not found.
+        :param bool required: If set, an exception will be thrown when the
+            option is not found.
+        :param type type: The desired type. Will be used for casting the
+            resulting value.
+        :rtype: mixed
+        :return: The actual configuration value or the provided `default_value`
+            casted to appropriate `type`.
+        """
         try:
             if type is str:
                 val = self.cfg.get(section, option, False, self.interpolations)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from iCE import rest_api
+from ice import rest_api
 
 
 def main():

@@ -2,7 +2,7 @@ import os
 import sys
 from IPython.config import loader
 from IPython.terminal import embed
-from iCE import config, logging, api_client
+from ice import config, logging, api_client
 
 
 class Shell(object):
