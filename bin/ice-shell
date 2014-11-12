@@ -1,9 +1,27 @@
 #!/usr/bin/env python2
-from ice import shell
+from ice import shell, config, logging, api_client
 
 
 def main():
-    s = shell.Shell()
+    # Configuration
+    _cfg = config.Configuration.get_configuration('shell')
+
+    # Logger
+    _logger = logging.get_logger('shell')
+    if _cfg.get_bool('shell', 'debug', False):
+        _logger.setLevel(logging.DEBUG)
+        _logger.debug('Setting log level to DEBUG')
+
+    # API configuration
+    _api_client = api_client.APIClient(
+        hostname=_cfg.get_var('shell', 'api_host', 'localhost'),
+        port=_cfg.get_int('shell', 'api_port', 5000)
+    )
+
+    # Shell
+    s = shell.ShellWrapper(_cfg, _logger, _api_client)
+
+    # Start the shell
     s.start()
 
 if __name__ == '__main__':
