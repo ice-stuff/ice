@@ -1,10 +1,10 @@
-#!/usr/bin/env python2.7
-from iCE.shell import Shell
-from iCE.shell.magic import *
+#!/usr/bin/env python2
+from iCE import shell
+
+
+def main():
+    s = shell.Shell()
+    s.start()
 
 if __name__ == '__main__':
-    # Initialize shell
-    s = Shell()
-
-    # Run the shell
-    s.start()
+    main()

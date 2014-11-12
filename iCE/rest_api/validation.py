@@ -1,12 +1,12 @@
 import re
-from cerberus import Validator
-from cerberus.errors import ERROR_BAD_TYPE
+import cerberus
+from cerberus import errors
 
 
-class MyValidator(Validator):
+class MyValidator(cerberus.Validator):
 
     def __init__(self, *args, **kwargs):
-        Validator.__init__(self, *args, **kwargs)
+        super(MyValidator, self).__init__(*args, **kwargs)
 
         # RegExs
         self._ip_re = None
@@ -29,14 +29,14 @@ class MyValidator(Validator):
 
         # Check general format
         if m is None:
-            self._error(field, ERROR_BAD_TYPE % 'Ip')
+            self._error(field, errors.ERROR_BAD_TYPE % 'Ip')
             return
 
         # Check parts
         for i in range(1, 4):
             part = int(m.group(i))
             if part < 0 or part > 255:
-                self._error(field, ERROR_BAD_TYPE % 'Ip')
+                self._error(field, errors.ERROR_BAD_TYPE % 'Ip')
 
     def _validate_type_url(self, field, value):
         """ Enables validation for `url` schema attribute.

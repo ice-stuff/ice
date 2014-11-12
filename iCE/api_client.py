@@ -1,7 +1,7 @@
 import json
 import requests
-from requests.exceptions import RequestException
-from .entities import Instance
+from requests import exceptions
+from iCE import entities
 
 ___version__ = '0.0.1'
 
@@ -88,7 +88,7 @@ class APIClient:
 
         resp = self._call('instances', 'GET')
         for entry in resp['_items']:
-            ret_val.append(Instance(**entry))
+            ret_val.append(entities.Instance(**entry))
 
         return ret_val
 
@@ -146,8 +146,8 @@ class APIClient:
         # Run the request
         try:
             resp = method(self._get_url(url_suffix), **args)
-        except RequestException as err:
-            raise APIClient.APIException(err)
+        except exceptions.RequestException as err:
+            raise APIClient.APIException(parent=err)
         if resp.status_code / 100 != 2:
             raise APIClient.APIException(
                 http_code=resp.status_code,
@@ -161,6 +161,6 @@ class APIClient:
             resp_parsed = resp.json()
         except ValueError as err:
             # Raise parse exception
-            raise APIClient.APIException(err)
+            raise APIClient.APIException(parent=err)
 
         return resp_parsed

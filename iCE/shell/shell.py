@@ -1,8 +1,8 @@
 import os
 import sys
-from IPython.config.loader import Config
-from IPython.terminal.embed import InteractiveShellEmbed
-from .. import config, logging
+from IPython.config import loader
+from IPython.terminal import embed
+from iCE import config, logging, api_client
 
 
 class Shell(object):
@@ -19,6 +19,12 @@ class Shell(object):
 
         # Configuration
         self.cfg = config.Configuration.get_configuration()
+
+        # API configuration
+        self.api_client = api_client.APIClient(
+            hostname=self.cfg.get_var('shell', 'api_host', 'localhost'),
+            port=self.cfg.get_int('shell', 'api_port', 5000)
+        )
 
         # Magic functions
         self.magic_functions = {}
@@ -130,14 +136,14 @@ class Shell(object):
             pass
 
         # Shell configuration
-        shell_cfg = Config()
+        shell_cfg = loader.Config()
         pc = shell_cfg.PromptManager
         pc.in_template = '$> '
         pc.in2_template = '   '
         pc.out_template = ''
 
         # Make shell
-        shell = InteractiveShellEmbed(
+        shell = embed.InteractiveShellEmbed(
             config=shell_cfg,
             banner1='* ' + str('*' * 68) + '\n'
             + '\n'.join(['* %s' % msg for msg in self.msgs]) + '\n'

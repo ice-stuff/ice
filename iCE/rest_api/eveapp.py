@@ -1,9 +1,7 @@
-from eve import Eve
-from ..config import Configuration
-from .. import logging
-from .validation import MyValidator
-from .domain import InstancesDomain
 from flask import request
+from eve import Eve
+from iCE import config, logging
+from iCE.rest_api import validation, domain
 
 
 class APIServer(Eve):
@@ -11,7 +9,7 @@ class APIServer(Eve):
     # CHANGE ME: Extend this list to add domains
     #
 
-    _DOMAINS = [InstancesDomain]
+    _DOMAINS = [domain.InstancesDomain]
 
     #
     # Constructor
@@ -19,7 +17,7 @@ class APIServer(Eve):
 
     def __init__(self, *args, **kwargs):
         # iCE
-        self.cfg = Configuration.get_configuration()
+        self.cfg = config.Configuration.get_configuration()
         in_debug = self.cfg.get_bool('api_server', 'debug', False)
         self.apiLogger = logging.get_logger('ice')
         if in_debug:
@@ -48,9 +46,9 @@ class APIServer(Eve):
             self._apply_domain_settings(dom)
 
         # Call parent
-        Eve.__init__(
-            self, settings=self.settings, validator=MyValidator, *args,
-            **kwargs
+        super(APIServer, self).__init__(
+            settings=self.settings, validator=validation.MyValidator,
+            *args, **kwargs
         )
 
         # Domain hooks
