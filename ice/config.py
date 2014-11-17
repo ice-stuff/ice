@@ -15,7 +15,8 @@ def get_config_files(component=None, component_only=False):
     """
     # List paths
     cfg_dir_paths = [
-        os.path.join(sys.prefix, 'ice-config'),
+        os.path.join(sys.prefix, 'etc', 'ice'),
+        os.path.join(sys.prefix, 'local', 'etc', 'ice'),
         os.path.join('/etc/ice'),
         os.path.expanduser('~/.ice')
     ]
