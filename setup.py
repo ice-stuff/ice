@@ -1,7 +1,7 @@
 import os
-from setuptools import setup, find_packages
+import setuptools
 
-setup(
+setuptools.setup(
     # Metadata
     name="iCE",
     version="0.0.1",
@@ -10,10 +10,10 @@ setup(
     description="Interactive cloud experiments and monitoring",
 
     # Packages
-    packages=find_packages(),
-    # zip_safe=False,                     # does not produce the EGG file
+    packages=setuptools.find_packages(exclude=['test']),
     scripts=[
-        os.path.join(os.path.dirname(__file__), 'bin', 'ice-shell')
+        os.path.join(os.path.dirname(__file__), 'bin', 'ice-shell'),
+        os.path.join(os.path.dirname(__file__), 'bin', 'ice-api-server')
     ],
 
     # Dependencies
