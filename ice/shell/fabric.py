@@ -161,6 +161,9 @@ class FabricShell(object):
 
         # Execute
         with fabric_api.settings(hosts=hosts.keys()):
-            ret_val = fabric_api.execute(task_func, instances, *args)
+            kwargs = {
+                'instances': instances
+            }
+            ret_val = fabric_api.execute(task_func, *args, **kwargs)
             import pprint
             pprint.pprint(ret_val)
