@@ -22,5 +22,15 @@ setuptools.setup(
         "IPython>=2.3.0",
         "requests>=1.2.0",
         "fabric>=1.10.0"
+    ],
+
+    # Configuration
+    data_files=[
+        (
+            '/etc/ice/default.d', [
+                'etc/default.d/ice.ini',
+                'etc/default.d/logging.ini'
+            ]
+        )
     ]
 )
