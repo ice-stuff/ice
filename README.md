@@ -13,7 +13,7 @@ on boot, include following lines in it's **user data**:
 #!/bin/bash
 curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
-./ice-register-self.py -a http://zerard.ddns.net:5000 -e test
+./ice-register-self.py -a http://ice.g-php.com:5000 -e test
 ```
 
 *Note: leave an empty line after last line of the user-data.*
@@ -24,7 +24,7 @@ just run following lines as root or a sudoer user:
 ```bash
 curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
-./ice-register-self.py -a http://zerard.ddns.net:5000 -e test
+./ice-register-self.py -a http://ice.g-php.com:5000 -e test
 ```
 
 ## RESTful API
