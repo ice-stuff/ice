@@ -27,9 +27,9 @@ setuptools.setup(
     # Configuration
     data_files=[
         (
-            '/etc/ice/default.d', [
-                'etc/default.d/ice.ini',
-                'etc/default.d/logging.ini'
+            'ice-config', [
+                'config/default/ice.ini',
+                'config/default/logging.ini'
             ]
         )
     ]

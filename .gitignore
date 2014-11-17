@@ -4,4 +4,4 @@
 temp
 *.pyc
 *.pyo
-etc/local.d/*
+config/local/*
