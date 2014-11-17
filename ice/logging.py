@@ -1,20 +1,16 @@
 from __future__ import absolute_import
-import os
 import logging
 from logging import config as logging_config
+from ice import config
 
 #
 # Load configuration
 #
 
-etc_path = os.environ.get("ICE_CONFIG_PATH", "/etc/ice")
-poss_paths = [
-    os.path.join(etc_path, "local.d", "logging.ini"),
-    os.path.join(etc_path, "default.d", "logging.ini")
-]
-for path in poss_paths:
-    if os.path.isfile(path):
-        logging_config.fileConfig(path, disable_existing_loggers=False)
+file_paths = config.get_config_files('logging', component_only=True)
+for file_path in file_paths:
+    print file_path
+    logging_config.fileConfig(file_path, disable_existing_loggers=False)
 
 
 #

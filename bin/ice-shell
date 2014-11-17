@@ -4,10 +4,10 @@ from ice import shell, config, logging, api_client
 
 def main():
     # Configuration
-    _cfg = config.Configuration.get_configuration('shell')
+    _cfg = config.get_configuration('shell')
 
     # Logger
-    _logger = logging.get_logger('shell')
+    _logger = logging.get_logger('ice.shell')
     if _cfg.get_bool('shell', 'debug', False):
         _logger.setLevel(logging.DEBUG)
         _logger.debug('Setting log level to DEBUG')
