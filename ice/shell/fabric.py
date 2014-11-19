@@ -4,6 +4,7 @@ import os
 import sys
 from fabric import api as fabric_api
 from fabric import tasks as fabric_tasks
+import ice
 
 
 class FabricShell(object):
@@ -32,7 +33,7 @@ class FabricShell(object):
         shell.add_magic_function(
             'run',
             self.run,
-            usage='<Experiment name> <Task name> [<Task arguments> ...]'
+            usage='<Experiment name> <Task or runner name> [<Arguments> ...]'
         )
 
     #
@@ -72,6 +73,31 @@ class FabricShell(object):
         return mod
 
     #
+    # Running
+    #
+
+    def run_experiment(self, runner, *args):
+        """
+        Runs an experiment runner.
+
+        :param ice.Runner runner: The runner.
+        :rtype: `mixed`
+        :return: The return value of the runner.
+        """
+        return self._run(runner, *args)
+
+    def run_task(self, task, *args):
+        """
+        Runs an experiment task.
+
+        :param ice.Task task: The task.
+        :rtype: `dict`
+        :return: A dictionary where host keys are the keys and task return
+            value is the value of each key.
+        """
+        return self._run(task, *args)
+
+    #
     # Commands
     #
 
@@ -100,70 +126,110 @@ class FabricShell(object):
         # Parse and check arguments
         try:
             experiment_name = args.pop(0)
+            # Is experiment loaded?
+            if experiment_name not in self._experiments:
+                self.logger.error(
+                    'Experiment `%s` is not loaded!' % experiment_name
+                )
+                return
+            mod = self._experiments[experiment_name]
         except IndexError:
             self.logger.error('Please specify experiment name!')
             return
 
-        # Is experiment loaded?
-        if experiment_name not in self._experiments:
-            self.logger.error(
-                'Experiment `%s` is not loaded!' % experiment_name
-            )
-            return
-        mod = self._experiments[experiment_name]
-
-        # List contents
-        print 'Tasks of module `%s`:' % experiment_name
+        # Get strings (lines)
+        runners = []
+        tasks = []
         for entry, ob in mod.__dict__.items():
-            if type(ob) == fabric_tasks.WrappedCallableTask:
-                print '* %s: %s' % (entry, ob.__doc__)
+            # Do we know this function?
+            if not isinstance(ob, ice.Callable):
+                continue
+
+            # Has help-doc?
+            if ob.help_msg is not None:
+                line = '* %s: %s' % (entry, ob.help_msg)
+            else:
+                line = '* %s' % entry
+
+            # Task or runner
+            if isinstance(ob, ice.Task):
+                tasks.append(line)
+            elif isinstance(ob, ice.Runner):
+                runners.append(line)
+
+        # List tasks and runners
+        print '> Module `%s`:' % experiment_name
+        if len(runners) > 0:
+            print 'Runners:'
+            print '\n'.join(runners)
+        if len(tasks) > 0:
+            print 'Tasks:'
+            print '\n'.join(tasks)
 
     def run(self, magics, args_raw):
-        """Runs a task"""
+        """Runs a task or an experiment."""
         args = args_raw.split()
 
-        # Parse and check arguments
+        # Parse and check experiment name
         try:
             experiment_name = args.pop(0)
+            # Is experiment loaded?
+            if experiment_name not in self._experiments:
+                self.logger.error(
+                    'Experiment `%s` is not loaded!' % experiment_name
+                )
+                return
+            mod = self._experiments[experiment_name]
         except IndexError:
             self.logger.error('Please specify experiment name!')
             return
+
+        # Parse and task name
         try:
             task_name = args.pop(0)
         except IndexError:
-            self.logger.error('Please specify task name!')
-            return
-
-        # Is experiment loaded?
-        if experiment_name not in self._experiments:
-            self.logger.error(
-                'Experiment `%s` is not loaded!' % experiment_name
-            )
-            return
-        mod = self._experiments[experiment_name]
-
+            task_name = 'run'  # default
         # Is task there?
         try:
             task_func = getattr(mod, task_name)
+            if not isinstance(task_func, ice.Callable):
+                self.logger.error(
+                    'Attribute `%s.%s` is not a callable!'
+                    % (experiment_name, task_name)
+                )
+                return
         except AttributeError:
             self.logger.error(
-                'Task `%s.%s` is not found!' % (experiment_name, task_name)
+                'Callable `%s.%s` is not found!' % (experiment_name, task_name)
             )
             return
 
+        # Execute
+        if isinstance(task_func, ice.Task):
+            self.run_task(task_func, *args)
+        elif isinstance(task_func, ice.Runner):
+            self.run_experiment(task_func, *args)
+
+    #
+    # Helpers
+    #
+
+    def _run(self, func, *args):
         # Fetch hosts
         hosts = {}
         instances = self.api_client.get_instances_list()
         for inst in instances:
-            host_string = '%s@%s' % (
-                inst.ssh_username, inst.public_reverse_dns)
+            host_string = inst.get_host_string()
             hosts[host_string] = inst
 
         # Execute
         with fabric_api.settings(hosts=hosts.keys()):
-            kwargs = {
-                'instances': instances
-            }
-            ret_val = fabric_api.execute(task_func, *args, **kwargs)
-            import pprint
-            pprint.pprint(ret_val)
+            # Prepare arguments
+            args = [hosts] + list(args)
+            # Run
+            if isinstance(func, ice.Runner):
+                return func(*args)
+            elif isinstance(func, ice.Task):
+                return fabric_api.execute(func, *args)
+            else:
+                return None
