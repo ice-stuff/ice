@@ -1,3 +1,10 @@
+"""Some common iCE entities."""
+
+
+#
+# Base entity class
+#
+
 class Entity(object):
 
     def __init__(self, **kwargs):
@@ -20,6 +27,10 @@ class Entity(object):
             _dict[key] = value
         return _dict
 
+
+#
+# Instance class
+#
 
 class Instance(Entity):
     #
@@ -79,3 +90,10 @@ class Instance(Entity):
         if bcast_addr is not None:
             my_net['bcast_addr'] = bcast_addr
         self.networks.append(my_net)
+
+    #
+    # Host string
+    #
+
+    def get_host_string(self):
+        return '{0.ssh_username:s}@{0.public_reverse_dns:s}'.format(self)
