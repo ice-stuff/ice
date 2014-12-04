@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import os
 import sys
 from fabric import api as fabric_api
-from fabric import tasks as fabric_tasks
 import ice
 
 
@@ -25,13 +24,13 @@ class FabricShell(object):
 
         # Register self
         shell.add_magic_function(
-            'load_exp', self.load_exp, usage='<Experiment file path>'
+            'exp_load', self.load_exp, usage='<Experiment file path>'
         )
         shell.add_magic_function(
-            'ls_exp', self.ls_exp, usage='<Experiment name>'
+            'exp_ls', self.ls_exp, usage='<Experiment name>'
         )
         shell.add_magic_function(
-            'run',
+            'exp_run',
             self.run,
             usage='<Experiment name> <Task or runner name> [<Arguments> ...]'
         )

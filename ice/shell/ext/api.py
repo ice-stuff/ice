@@ -1,5 +1,5 @@
 """Wrapper class for API-related shell commands."""
-
+import ice
 
 class APIShell(object):
 
@@ -15,13 +15,13 @@ class APIShell(object):
         self.logger = shell.logger
 
         # Register self
-        shell.add_magic_function('ls_inst', self.ls_inst)
+        shell.add_magic_function('inst_ls', self.ls_inst)
         shell.add_magic_function(
-            'del_inst', self.del_inst,
+            'inst_del', self.del_inst,
             usage='<Instance id> [<Instance id> ...]'
         )
         shell.add_magic_function(
-            'show_inst', self.show_inst,
+            'inst_show', self.show_inst,
             usage='<Instance id> [<Instance id> ...]'
         )
 
