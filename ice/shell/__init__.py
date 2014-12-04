@@ -1,2 +1,2 @@
 """iCE Shell module."""
-from ice.shell.wrapper import ShellWrapper
+from .shell import Shell

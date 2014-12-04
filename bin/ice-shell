@@ -19,7 +19,7 @@ def main():
     )
 
     # Shell
-    s = shell.ShellWrapper(_cfg, _logger, _api_client)
+    s = shell.Shell(_cfg, _logger, _api_client)
 
     # Start the shell
     s.start()

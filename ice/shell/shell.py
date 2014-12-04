@@ -1,18 +1,18 @@
 """IPython shell wrapper class."""
+import argparse
+import IPython
 from IPython.config import loader
 from IPython.terminal import embed
-from ice.shell import fabric, api
+from .ext import fabric, api, ec2
 
-
-class ShellWrapper(object):
-
+class Shell(object):
     """IPython shell wrapper class."""
 
     def __init__(self, config, logger, api_client):
         """
         :param ice.config.Configuration config: The configuration object.
         :param logging.Logger logger: The shell logger.
-        :param ice.api_client.APIClient api_client: The API client.
+        :param ice.APIClient api_client: The API client.
         """
         # Set dependencies
         self.config = config
@@ -29,12 +29,32 @@ class ShellWrapper(object):
         ]
 
         # Magic functions
-        self._magic_functions = {}
-        self.add_magic_function('h', self._cmd_h)
+        self._magic_functions = []
+        self._magic_functions_dict = {}
+        self.add_magic_function('h', self.run_h)
 
-        # Add sub-shells
+        # Add shells extensions
         fabric.FabricShell(self)
         api.APIShell(self)
+        ec2.EC2Shell(self)
+
+    #
+    # Setters / getters
+    #
+
+    def get_config(self):
+        """Gets the configuration object.
+        :rtype: ice.config.Configuration
+        :return: The configuration object.
+        """
+        return self.config
+
+    def get_logger(self):
+        """Gets the iCE logger.
+        :rtype: logging.Logger
+        :return: The iCE logger.
+        """
+        return self.logger
 
     #
     # Error
@@ -48,9 +68,7 @@ class ShellWrapper(object):
     #
 
     def add_banner_message(self, msg):
-        """
-        Adds a message in the shell header.
-
+        """Adds a message in the shell header.
         :param str msg: The message to add.
         """
         self._banner_messages.append(msg)
@@ -59,20 +77,36 @@ class ShellWrapper(object):
     # Magic function handling
     #
 
-    def add_magic_function(self, alias, func, usage=None):
-        """
-        Adds a magic function to the shell.
-
+    def add_magic_function(self, alias, callback, usage=None):
+        """Adds a magic function to the shell.
         :param str alias: The function alias.
-        :param function func: The function pointer.
+        :param function callback: The callback function.
         :param str usage: The usage string.
         """
-        self._magic_functions[alias] = {
+        mf = {
             'alias': alias,
-            'func': func
+            'cb': callback
         }
         if usage is not None:
-            self._magic_functions[alias]['usage'] = usage
+            mf['usage'] = usage
+        self._magic_functions.append(mf)
+        self._magic_functions_dict[alias] = mf
+
+    def add_magic_function_v2(self, alias, callback, parser=None):
+        """Adds a magic function to the shell.
+        :param str alias: Alias of the command
+        :param function callback: The callback function.
+        :param argparse.ArgumentParser parser: The argument parser.
+        """
+        mf = {
+            'alias': alias,
+            'cb': callback,
+            'parser': parser
+        }
+        if parser is not None:
+            mf['parser'] = parser
+        self._magic_functions.append(mf)
+        self._magic_functions_dict[alias] = mf
 
     #
     # Start shell
@@ -85,13 +119,10 @@ class ShellWrapper(object):
         : raises Shell.Error: In case of error.
         """
         # Check if inside IPython shell already
-        try:
-            get_ipython
+        if IPython.get_ipython() is not None:
             raise Shell.Error(
                 'Cannot run iCE shell from within an IPython shell!'
             )
-        except NameError:
-            pass
 
         # Shell configuration
         shell_cfg = loader.Config()
@@ -108,8 +139,8 @@ class ShellWrapper(object):
             + '* ' + str('*' * 68),
             exit_msg='See ya...'
         )
-        for key, entry in self._magic_functions.items():
-            shell.define_magic(entry['alias'], entry['func'])
+        for entry in self._magic_functions:
+            shell.define_magic(entry['alias'], entry['cb'])
 
         # Run
         shell()
@@ -118,14 +149,16 @@ class ShellWrapper(object):
     # Help command
     #
 
-    def _cmd_h(self, magics, definition):
+    def run_h(self, magics, definition):
         """Shows list of commands."""
         # Definition is defined :)
         if definition != '':
-            if definition in self._magic_functions:
-                entry = self._magic_functions[definition]
-                print entry['func'].__doc__
-                if 'usage' in entry:
+            if definition in self._magic_functions_dict:
+                entry = self._magic_functions_dict[definition]
+                print entry['cb'].__doc__
+                if 'parser' in entry:
+                    print entry['parser'].format_help()
+                elif 'usage' in entry:
                     print 'Usage: %s %s' % (definition, entry['usage'])
             else:
                 help(str(definition))
@@ -135,7 +168,7 @@ class ShellWrapper(object):
         print 'All commands explained:'
         print '\n'.join(
             [
-                ' * %s: %s' % (key, entry['func'].__doc__)
-                for key, entry in self._magic_functions.items()
+                ' * %s: %s' % (entry['alias'], entry['cb'].__doc__)
+                for entry in self._magic_functions
             ]
         )
