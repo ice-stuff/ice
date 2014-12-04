@@ -5,3 +5,5 @@ temp
 *.pyc
 *.pyo
 config/local/*
+.idea
+
