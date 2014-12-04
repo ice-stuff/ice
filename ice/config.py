@@ -5,10 +5,8 @@ import re
 import ConfigParser
 
 
-def get_config_files(component=None, component_only=False):
-    """
-    Returns the list of file paths.
-
+def find_config_files(component=None, component_only=False):
+    """Returns the list of file paths.
     :param str component: Set to load a specific component (INI file).
     :rtype: `list`
     :return: `list` of `str`.
@@ -43,15 +41,13 @@ def get_config_files(component=None, component_only=False):
 
 
 def get_configuration(component=None):
-    """
-    Returns the `config.Configuration` class instance.
-
+    """Returns the `config.Configuration` class instance.
     :param str component: Set to load a specific component (INI file).
     :rtype: `config.Configuration`
     :return: Configuration class instance.
     """
     # Get list of files
-    file_paths = get_config_files(component)
+    file_paths = find_config_files(component)
 
     # Initialize the parser
     cfg = ConfigParser.SafeConfigParser()
@@ -62,27 +58,30 @@ def get_configuration(component=None):
 
 
 class Configuration(object):
+    """Wrapper around ConfigParser.RawConfigParser class. It adds features:
 
-    """
-    Wrapper around ConfigParser.RawConfigParser class. It adds features:
+    ## How it works
 
-        1) Default values in get method and non-required options:
-            - *ConfigParser will throw exceptions when an option is not found.
-            - It requires default values to be passed in the constructor of
-                the class, while in g4.Val default values are passed in get*
-                method arguments.
-        2) Adds methods get_list and get_dict.
-            - Based on regular expressions it adds support for multiple levels
-                (dictionaries) and for list of values in configuration files.
-            - INI extensions - LISTS:
-                OptionName.0 = <Value 0>
-                OptionName.1 = <Value 1>
-                ...
-            - INI extensions - DICTIONARIES:
-                OptionName.<FieldName 0> = <Value 0>
-                OptionName.<FieldName 1> = <Value 1>
-                OptionName.<FieldName 2> = <Value 2>
-                ...
+    1. Default values in get method and non-required options:
+        - `ConfigParser` will throw exceptions when an option is not found.
+        - It requires default values to be passed in the constructor of the
+            class, while in default values are passed in get* method arguments.
+    2. Adds methods get_list and get_dict.
+        - Based on regular expressions it adds support for multiple levels
+            (dictionaries) and for list of values in configuration files.
+        - INI extensions - LISTS:
+            ```
+            OptionName.0 = <Value 0>
+            OptionName.1 = <Value 1>
+            ...
+            ```
+        - INI extensions - DICTIONARIES:
+            ```
+            OptionName.<FieldName 0> = <Value 0>
+            OptionName.<FieldName 1> = <Value 1>
+            OptionName.<FieldName 2> = <Value 2>
+            ...
+            ```
     """
 
     class Error(Exception):
@@ -154,18 +153,66 @@ class Configuration(object):
                 % (option, section, str(ex))
             )
 
+    def get_str(self, section, option, default_value=None, required=False):
+        """Gets string configuration parameter.
+        :param str section: The configuration section.
+        :param str option: The configuration option name.
+        :param str default_value: The value to apply if the option is not found.
+        :param bool required: Raise a `Configuration.OptionNotFound` exception
+            if not found.
+        :raises: ice.config.Configuration.OptionNotFound
+        :rtype: str
+        """
+        return self.get_var(section, option, default_value, required, type=str)
+
     def get_int(self, section, option, default_value=None, required=False):
+        """Gets integer configuration parameter.
+        :param str section: The configuration section.
+        :param str option: The configuration option name.
+        :param int default_value: The value to apply if the option is not found.
+        :param bool required: Raise a `Configuration.OptionNotFound` exception
+            if not found.
+        :raises: ice.config.Configuration.OptionNotFound
+        :rtype: int
+        """
         return self.get_var(section, option, default_value, required, type=int)
 
     def get_float(self, section, option, default_value=None, required=False):
+        """Gets floating point number, configuration parameter.
+        :param str section: The configuration section.
+        :param str option: The configuration option name.
+        :param float default_value: The value to apply if the option is not
+            found.
+        :param bool required: Raise a `Configuration.OptionNotFound` exception
+            if not found.
+        :raises: ice.config.Configuration.OptionNotFound
+        :rtype: float
+        """
         return self.get_var(
             section, option, default_value, required, type=float
         )
 
     def get_bool(self, section, option, default_value=None, required=False):
+        """Gets boolean configuration parameter.
+        :param str section: The configuration section.
+        :param str option: The configuration option name.
+        :param bool default_value: The value to apply if the option is not
+            found.
+        :param bool required: Raise a `Configuration.OptionNotFound` exception
+            if not found.
+        :raises: ice.config.Configuration.OptionNotFound
+        :rtype: bool
+        """
         return self.get_var(section, option, default_value, required, type=bool)
 
     def get_list(self, section, reg_ex):
+        """Retrieves a list of values that are in a given section, under option
+            keys that match provided regular expression.
+        :param str section: The section to look at.
+        :param str reg_ex: Regular expression to apply.
+        :rtype: list
+        :return: List of values.
+        """
         reg_ex = reg_ex.lower()  # implementation detail of ConfigParse, all
         # options are converted to lower case
         options = self.cfg.options(section)
@@ -178,6 +225,16 @@ class Configuration(object):
         return _list
 
     def get_dict(self, section, reg_ex=r'^(.*)$', group=1):
+        """Gets a dictionary with all the options of a given sections, that
+            match provided regular expression.
+        :param str section: The section to examine.
+        :param str reg_ex: Regular expression to apply. Optional, default:
+            matches all.
+        :param int group: Which matched group of the option name to use as key
+            in the dictionary. Optional, default: 1.
+        :rtype: dict
+        :return: A dictionary with all the matched options.
+        """
         reg_ex = reg_ex.lower()  # implementation detail of ConfigParse, all
         # options are converted to lower case
         options = self.cfg.options(section)
