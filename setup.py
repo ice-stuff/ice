@@ -21,7 +21,8 @@ setuptools.setup(
         "eve>=0.4",
         "IPython>=2.3.0",
         "requests>=1.2.0",
-        "fabric>=1.10.0"
+        "fabric>=1.10.0",
+        "boto>=2.34.0"
     ],
 
     # Configuration
