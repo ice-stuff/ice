@@ -7,11 +7,11 @@
 #   Registers virtual instance that calls this script to iCE.
 #
 # Usage:
-#   ice-register-self.py -a|--api <API endpoint URL> -e|--exp <Experiment key>
+#   ice-register-self.py -a|--api <API endpoint URL> -s|--sess <Session id>
 #       [-v|--verbose]
 #   -a|--api <API endpoint URL> The iCE RESTful API endpoint. Can be omitted if
 #       ICE_API_ENDPOINT environment variable is set.
-#   -e|--exp <Experiment key> The experiment key. Can be omitted if ICE_EXP_KEY
+#   -s|--sess <Session id> The session id. Can be omitted if ICE_SESSION_ID
 #       environment variable is set.
 #   -v|--verbose Verbose option.
 ##########################################################################
@@ -159,13 +159,13 @@ def _parse_cmd(args):
     ret_val = {
         'verbose': False,
         'apiEndpoint': os.environ.get('ICE_API_ENDPOINT', None),
-        'experimentKey': os.environ.get('ICE_EXP_KEY', None),
+        'sessionId': os.environ.get('ICE_SESSION_ID', None),
     }
 
     # Parse
     try:
         optlist, args = getopt.getopt(
-            args, 'a:e:v', ['api=', 'exp=', 'verbose']
+            args, 'a:s:v', ['api=', 'sess=', 'verbose']
         )
     except getopt.GetoptError as err:
         print '[ERROR] %s' % str(err)
@@ -173,8 +173,8 @@ def _parse_cmd(args):
     for o, a in optlist:
         if o in ('--verbose', '-v'):
             ret_val['verbose'] = True
-        elif o in ('--exp', '-e'):
-            ret_val['experimentKey'] = a
+        elif o in ('--sess', '-s'):
+            ret_val['sessionId'] = a
         elif o in ('--api', '-a'):
             ret_val['apiEndpoint'] = a
         else:
@@ -186,8 +186,8 @@ def _parse_cmd(args):
         print '[ERROR] Please specify the API endpoint URL using the -a or' \
             + ' --api argument!'
         return None
-    if ret_val['experimentKey'] is None:
-        print '[ERROR] Please specify the experiment key using -e or --exp' \
+    if ret_val['sessionId'] is None:
+        print '[ERROR] Please specify the session id using -s or --sess' \
             + ' argument!'
         return None
 
@@ -297,6 +297,9 @@ def _make_request(cmd):
     """
     ret_val = {}
 
+    # Session
+    ret_val['session_id'] = cmd['sessionId']
+
     #  Network information
     networks = _extract_networks(cmd)
     if networks is None:
@@ -384,7 +387,7 @@ def _make_urllib_request(cmd, ice_req):
     req.add_data(json.dumps(ice_req))
     req.add_header('Content-Type', 'application/json')
     req.add_header('User-Agent', 'iCE Agent/%s' % ___version__)
-    req.add_header('Experiment-Key', hashlib.sha1(cmd['experimentKey']))
+    req.add_header('Session-Id', hashlib.sha1(cmd['sessionId']))
     return req
 
 
