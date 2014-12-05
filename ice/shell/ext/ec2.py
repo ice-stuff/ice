@@ -17,16 +17,17 @@ class EC2Shell(ShellExt):
         """
         super(EC2Shell, self).__init__(shell)
 
-        # Set logger
-        self.logger = shell.get_logger()
-
         # Parse configuration
-        config = shell.get_config()
-        self.clouds, self.default_cloud_id = self._parse_clouds(config)
-        if len(self.clouds) == 0:
+        self._clouds, self.default_cloud_id = self._parse_clouds(self.config)
+        if len(self._clouds) == 0:
             self.logger.error('No clouds found in configuration!')
-        self.cfg_api_host = config.get_str('shell', 'api_host', required=True)
-        self.cfg_api_port = config.get_int('shell', 'api_port', 80)
+        self.cfg_api_host = self.config.get_str(
+            'shell', 'api_host', required=True
+        )
+        self.cfg_api_port = self.config.get_int('shell', 'api_port', 80)
+
+        # Instances
+        self._instances = {}
 
         # Register self
         shell.add_magic_function_v2(
@@ -38,6 +39,18 @@ class EC2Shell(ShellExt):
         shell.add_magic_function_v2(
             'ec2_destroy', self.run_destroy, self.get_destroy_parser()
         )
+
+    #
+    # Start / stop
+    #
+
+    def stop(self):
+        super(EC2Shell, self).stop()
+
+        # Destroy instances
+        instances_id = []
+        for inst_id, entry in self._instances.items():
+            entry['cloud']['conn'].terminate_instances([entry['inst'].id])
 
     #
     # Commands
@@ -60,7 +73,7 @@ class EC2Shell(ShellExt):
         args = self.get_ls_parser().parse_args(args_raw.split())
 
         # Look for cloud
-        cloud = self.clouds.get(args.cloud_id, None)
+        cloud = self._clouds.get(args.cloud_id, None)
         if cloud is None:
             self.logger.error('Failed to use cloud {}'.format(args.cloud_id))
             return
@@ -89,7 +102,7 @@ class EC2Shell(ShellExt):
         args = self.get_create_parser().parse_args(args_raw.split())
 
         # Look for cloud
-        cloud = self.clouds.get(args.cloud_id, None)
+        cloud = self._clouds.get(args.cloud_id, None)
         if cloud is None:
             self.logger.error('Failed to use cloud {}'.format(args.cloud_id))
             return
@@ -122,6 +135,13 @@ class EC2Shell(ShellExt):
         try:
             resp = cloud['conn'].run_instances(ami_id, **kwargs)
 
+            # Add instances
+            for inst in resp.instances:
+                self._instances[inst.id] = {
+                    'inst': inst,
+                    'cloud': cloud
+                }
+
             # Print
             self._print_reservations([resp])
         except boto_exception.EC2ResponseError as err:
@@ -143,7 +163,7 @@ class EC2Shell(ShellExt):
         args = self.get_destroy_parser().parse_args(args_raw.split())
 
         # Look for cloud
-        cloud = self.clouds.get(args.cloud_id, None)
+        cloud = self._clouds.get(args.cloud_id, None)
         if cloud is None:
             self.logger.error('Failed to use cloud {}'.format(args.cloud_id))
             return
@@ -168,6 +188,9 @@ class EC2Shell(ShellExt):
             instances = cloud['conn'].terminate_instances(instance_ids)
         else:
             instances = []
+        for inst in instances:
+            if inst.id in self._instances:
+                del self._instances[inst.id]
         self._print_instances(instances)
 
     #
@@ -237,12 +260,12 @@ class EC2Shell(ShellExt):
         return clouds, cloud_ids[0]
 
     def _compile_user_data(self):
-        session_id = 'test'
+        session_id = self.current_session.id
         user_data = """#!/bin/bash
 
 curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
-./ice-register-self.py -a http://{0:s}:{1:d} -e {2:s}
+./ice-register-self.py -a http://{0:s}:{1:d} -s {2:s}
 
 """.format(self.cfg_api_host, self.cfg_api_port, session_id)
         return base64.b64encode(user_data)
