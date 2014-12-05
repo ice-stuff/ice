@@ -5,22 +5,28 @@ import IPython
 from IPython.config import loader
 from IPython.terminal import embed
 
-from .ext import fabric, api, ec2
+from ice import entities
+from ice import api_client
+from . import ext
 
 
 class Shell(object):
-    """IPython shell wrapper class."""
+    """IPython shell wrapper class.
+
+    :type config: ice.config.Configuration
+    :type logger: logging.Logger
+    :type api_client: ice.api_client.APIClient
+    :type current_session: ice.entities.Session
+    """
 
     def __init__(self, config, logger, api_client):
-        """
-        :param ice.config.Configuration config: The configuration object.
-        :param logging.Logger logger: The shell logger.
-        :param ice.APIClient api_client: The API client.
-        """
         # Set dependencies
         self.config = config
         self.api_client = api_client
         self.logger = logger
+
+        # Session
+        self.current_session = None
 
         # Default banner messages
         self._banner_messages = [
@@ -37,9 +43,10 @@ class Shell(object):
         self.add_magic_function('h', self.run_h)
 
         # Add shells extensions
-        fabric.FabricShell(self)
-        api.APIShell(self)
-        ec2.EC2Shell(self)
+        self._extensions = []
+        self._extensions.append(ext.FabricShell(self))
+        self._extensions.append(ext.APIShell(self))
+        self._extensions.append(ext.EC2Shell(self))
 
     #
     # Setters / getters
@@ -127,6 +134,17 @@ class Shell(object):
                 'Cannot run iCE shell from within an IPython shell!'
             )
 
+        # Make session
+        try:
+            ip_addr = self.api_client.get_my_ip()
+        except api_client.APIClient.APIException:
+            self.logger.error('Failed to contact API!')
+            return
+        self.current_session = entities.Session(client_ip_addr=ip_addr)
+        if self.api_client.submit_session(self.current_session) is None:
+            self.logger.error('Failed to submit session!')
+            return
+
         # Shell configuration
         shell_cfg = loader.Config()
         pc = shell_cfg.PromptManager
@@ -146,8 +164,19 @@ class Shell(object):
         for entry in self._magic_functions:
             shell.define_magic(entry['alias'], entry['cb'])
 
+        # Start extensions
+        for ext in self._extensions:
+            ext.start()
+
         # Run
         shell()
+
+        # Stop extensions
+        for ext in self._extensions:
+            ext.stop()
+
+        # Clean session
+        self.api_client.delete_session(self.current_session.id)
 
     #
     # Help command
