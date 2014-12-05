@@ -10,8 +10,17 @@ class ShellExt(object):
         """
         self.shell = shell
 
+        # Set dependencies
+        self.config = shell.get_config()
+        self.api_client = shell.api_client
+        self.logger = shell.get_logger()
+
+        # Session
+        self.current_session = None
+
     def start(self):
-        pass
+        # Set session
+        self.current_session = self.shell.current_session
 
     def stop(self):
         pass
@@ -19,5 +28,4 @@ class ShellExt(object):
 # Shell extensions
 from .api import APIShell
 from .ec2 import EC2Shell
-from .session import SessionShell
 from .fabric import FabricShell

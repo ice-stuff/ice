@@ -16,12 +16,7 @@ class FabricShell(ShellExt):
         """
         :param ice.shell.Shell shell: The shell.
         """
-        super(ShellExt, self).__init__(shell)
-
-        # Set dependencies
-        self.config = shell.config
-        self.api_client = shell.api_client
-        self.logger = shell.logger
+        super(FabricShell, self).__init__(shell)
 
         # Experiments
         self._experiments = {}
