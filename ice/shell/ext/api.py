@@ -11,11 +11,6 @@ class APIShell(ShellExt):
         """
         super(APIShell, self).__init__(shell)
 
-        # Set dependencies
-        self.config = shell.config
-        self.api_client = shell.api_client
-        self.logger = shell.logger
-
         # Register self
         shell.add_magic_function('inst_ls', self.ls_inst)
         shell.add_magic_function(
@@ -34,24 +29,24 @@ class APIShell(ShellExt):
     def ls_inst(self, magis, args_raw):
         """Lists instances."""
         # Get instances
-        inst_list = self.api_client.get_instances_list()
+        inst_list = self.api_client.get_instances_list(self.current_session.id)
         if inst_list is None:
             self.logger.error('Failed to find instances!')
             return
 
         self.logger.info('Found %d instances' % len(inst_list))
-        print '-' * 153
-        print '| {0:30s} | {1:20s} | {2:50s} | {3:40s} |'.format(
+        print '-' * 129
+        print '| {0:23s} | {1:20s} | {2:43s} | {3:30s} |'.format(
             'Id',
             'Public IP address',
             'Cloud Id',
             'Created on'
         )
-        print '-' * 153
+        print '-' * 129
         for inst in inst_list:
-            print '| {0.id:30s} | {0.public_ip_addr:20s}'.format(inst) \
-                  + ' | {0.cloud_id:50s} | {0.created:40s} |'.format(inst)
-        print '-' * 153
+            print '| {0.id:23s} | {0.public_ip_addr:20s}'.format(inst) \
+                  + ' | {0.cloud_id:43s} | {0.created:30s} |'.format(inst)
+        print '-' * 129
 
     def show_inst(self, magics, args_raw):
         """Shows information for a specific instance."""
