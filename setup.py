@@ -13,7 +13,7 @@ setuptools.setup(
     packages=setuptools.find_packages(exclude=['test']),
     scripts=[
         os.path.join(os.path.dirname(__file__), 'bin', 'ice-shell'),
-        os.path.join(os.path.dirname(__file__), 'bin', 'ice-api-server')
+        os.path.join(os.path.dirname(__file__), 'bin', 'ice-server')
     ],
 
     # Dependencies
