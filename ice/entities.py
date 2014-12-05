@@ -1,4 +1,4 @@
-"""Some common iCE entities."""
+"""iCE entities."""
 
 
 #
@@ -6,6 +6,14 @@
 #
 
 class Entity(object):
+    """Generic entity.
+
+    :ivar str id: The unique entity id.
+    :ivar datetime.DateTime created: When the entity was created.
+    :ivar datetime.DateTime update: When the entity was last modified.
+    :ivar str etag: A unique e-tag, used for version control.
+    """
+
     def __init__(self, **kwargs):
         # MongoDB stuff
         self.id = kwargs.get('_id', None)
@@ -15,6 +23,11 @@ class Entity(object):
         self.etag = kwargs.get('_etag', None)
 
     def to_dict(self):
+        """Converts the entity to dictionary.
+
+        :rtype: dict
+        :return: A Python dictionary with the attributes of the entity.
+        """
         _dict = {}
         for key, value in self.__dict__.items():
             if value is None:
@@ -28,10 +41,43 @@ class Entity(object):
 
 
 #
+# Session class
+#
+
+class Session(Entity):
+    """Represents an experimentation session.
+
+    :ivar str client_ip_addr: The IP address of the client.
+    """
+
+    def __init__(self, **kwargs):
+        super(Session, self).__init__(**kwargs)
+
+        # Attributes
+        self.client_ip_addr = kwargs['client_ip_addr']
+
+
+#
 # Instance class
 #
 
 class Instance(Entity):
+    """Represents a cloud instance.
+
+    :ivar str session_id: The id of the session that owns the instance.
+    :ivar list networks: List of networks.
+    :ivar str public_ip_addr: Public IP address.
+    :ivar str public_reverse_dns: Public reverse DNS.
+    :ivar str cloud_id: An identifier for the cloud.
+    :ivar str vpc_id: Some identifier for the sub-network / security group or
+        VPC within the cloud, on which the instance belogs.
+    :ivar str ssh_username: SSH username. Optional, default: root.
+    :ivar str ssh_authorized_fingerprint: The SSH fingerprint of the authorized
+        SSH key.
+    :ivar int failed_pings_count: Amount of pings tha failed to the instance.
+    :ivar str status: The status of the instance. Takes values from the
+        `Instance.STATUS_*` constants.
+    """
     #
     # Status attribute values
     #
@@ -47,6 +93,9 @@ class Instance(Entity):
 
     def __init__(self, **kwargs):
         super(Instance, self).__init__(**kwargs)
+
+        # Session
+        self.session_id = kwargs['session_id']
 
         # Networking
         self.networks = []
@@ -81,6 +130,13 @@ class Instance(Entity):
     #
 
     def add_network(self, addr, iface=None, bcast_addr=None):
+        """Adds network in the instance.
+
+        :param str addr: The address and mask of the network (e.g.:
+            192.168.1.112/24).
+        :param str iface: The interface of the network (e.g.: eth0).
+        :param str bcast_addr: The broadcast address of the network.
+        """
         my_net = {
             'addr': addr
         }
@@ -95,4 +151,8 @@ class Instance(Entity):
     #
 
     def get_host_string(self):
+        """Generates the host string for SSH.
+        :rtype: str
+        :return: The SSH host string.
+        """
         return '{0.ssh_username:s}@{0.public_reverse_dns:s}'.format(self)
