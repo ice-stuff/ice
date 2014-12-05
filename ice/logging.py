@@ -9,7 +9,6 @@ from ice import config
 
 file_paths = config.find_config_files('logging', component_only=True)
 for file_path in file_paths:
-    print file_path
     logging_config.fileConfig(file_path, disable_existing_loggers=False)
 
 
