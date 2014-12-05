@@ -1,13 +1,16 @@
 """Wrapper class for API-related shell commands."""
+from . import ShellExt
 
 
-class APIShell(object):
+class APIShell(ShellExt):
     """Wrapper class for API-related shell commands."""
 
     def __init__(self, shell):
         """
         :param ice.shell.Shell shell: The shell.
         """
+        super(APIShell, self).__init__(shell)
+
         # Set dependencies
         self.config = shell.config
         self.api_client = shell.api_client

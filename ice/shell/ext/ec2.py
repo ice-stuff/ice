@@ -5,14 +5,18 @@ import base64
 from boto import exception as boto_exception
 from boto import ec2
 
+from . import ShellExt
 
-class EC2Shell(object):
+
+class EC2Shell(ShellExt):
     """Wrapper class for EC2-like cloud related shell commands."""
 
     def __init__(self, shell):
         """
         :param ice.shell.Shell shell: The shell.
         """
+        super(EC2Shell, self).__init__(shell)
+
         # Set logger
         self.logger = shell.get_logger()
 
