@@ -2,12 +2,13 @@
 from __future__ import absolute_import
 import os
 import sys
+
 from fabric import api as fabric_api
+
 import ice
 
 
 class FabricShell(object):
-
     """Wrapper class for Fabric-related shell commands."""
 
     def __init__(self, shell):

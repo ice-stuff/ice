@@ -1,9 +1,12 @@
 """IPython shell wrapper class."""
 import argparse
+
 import IPython
 from IPython.config import loader
 from IPython.terminal import embed
+
 from .ext import fabric, api, ec2
+
 
 class Shell(object):
     """IPython shell wrapper class."""
@@ -135,8 +138,9 @@ class Shell(object):
         shell = embed.InteractiveShellEmbed(
             config=shell_cfg,
             banner1='* ' + str('*' * 68) + '\n'
-            + '\n'.join(['* %s' % msg for msg in self._banner_messages]) + '\n'
-            + '* ' + str('*' * 68),
+                    + '\n'.join(
+                ['* %s' % msg for msg in self._banner_messages]) + '\n'
+                    + '* ' + str('*' * 68),
             exit_msg='See ya...'
         )
         for entry in self._magic_functions:

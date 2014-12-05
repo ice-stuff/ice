@@ -6,7 +6,6 @@
 #
 
 class Entity(object):
-
     def __init__(self, **kwargs):
         # MongoDB stuff
         self.id = kwargs.get('_id', None)

@@ -1,8 +1,7 @@
 """Wrapper class for API-related shell commands."""
-import ice
+
 
 class APIShell(object):
-
     """Wrapper class for API-related shell commands."""
 
     def __init__(self, shell):
@@ -48,7 +47,7 @@ class APIShell(object):
         print '-' * 153
         for inst in inst_list:
             print '| {0.id:30s} | {0.public_ip_addr:20s}'.format(inst) \
-                + ' | {0.cloud_id:50s} | {0.created:40s} |'.format(inst)
+                  + ' | {0.cloud_id:50s} | {0.created:40s} |'.format(inst)
         print '-' * 153
 
     def show_inst(self, magics, args_raw):

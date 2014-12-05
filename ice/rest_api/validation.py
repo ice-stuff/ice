@@ -1,10 +1,10 @@
 import re
+
 import cerberus
 from cerberus import errors
 
 
 class MyValidator(cerberus.Validator):
-
     def __init__(self, *args, **kwargs):
         super(MyValidator, self).__init__(*args, **kwargs)
 

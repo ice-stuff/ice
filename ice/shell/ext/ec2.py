@@ -1,9 +1,9 @@
 """Wrapper class for EC2-like cloud related shell commands."""
 import argparse
 import base64
+
 from boto import exception as boto_exception
 from boto import ec2
-from boto.ec2 import instance
 
 
 class EC2Shell(object):
@@ -112,7 +112,7 @@ class EC2Shell(object):
         if cloud['subnet_id'] is not None:
             kwargs['subnet_id'] = cloud['subnet_id']
         # if cloud['vpc_id'] is not None:
-        #     kwargs['vpc_id'] = cloud['vpc_id']
+        # kwargs['vpc_id'] = cloud['vpc_id']
 
         # Run
         try:
@@ -250,8 +250,8 @@ chmod +x ./ice-register-self.py
         :return: A string.
         """
         ret_val = '| {0.id:15s} | {0.image_id:15s}'.format(inst) \
-            + ' | {0.instance_type:15s} | {0.ip_address:20s}'.format(inst) \
-            + ' | {0.state:15s} | {0.launch_time:30s} |'.format(inst)
+                  + ' | {0.instance_type:15s} | {0.ip_address:20s}'.format(inst) \
+                  + ' | {0.state:15s} | {0.launch_time:30s} |'.format(inst)
         return ret_val
 
     def _print_reservations(self, reservations, show_reservations=True):
@@ -261,15 +261,15 @@ chmod +x ./ice-register-self.py
         :param bool show_reservations: Show the reservation names.
         """
         print '-' * 129
-        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |'\
+        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
             .format(
-                'Id',
-                'AMI Id',
-                'Instance type',
-                'Public IP DNS',
-                'Status',
-                'Launched on'
-            )
+            'Id',
+            'AMI Id',
+            'Instance type',
+            'Public IP DNS',
+            'Status',
+            'Launched on'
+        )
         print '-' * 129
         for reservation in reservations:
             if show_reservations:
@@ -288,15 +288,15 @@ chmod +x ./ice-register-self.py
             instances.
         """
         print '-' * 129
-        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |'\
+        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
             .format(
-                'Id',
-                'AMI Id',
-                'Instance type',
-                'Public IP DNS',
-                'Status',
-                'Launched on'
-            )
+            'Id',
+            'AMI Id',
+            'Instance type',
+            'Public IP DNS',
+            'Status',
+            'Launched on'
+        )
         print '-' * 129
         for inst in instances:
             print self._format_instance(inst)

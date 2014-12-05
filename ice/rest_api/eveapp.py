@@ -1,5 +1,6 @@
 from flask import request
 from eve import Eve
+
 from ice import config, logging
 from ice.rest_api import validation, domain
 
