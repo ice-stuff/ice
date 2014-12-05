@@ -54,6 +54,63 @@ class APIClient:
         return self._call('my_ip', return_raw=True)
 
     #
+    # Session handling
+    #
+
+    def submit_session(self, session):
+        """Submits session to API.
+
+        :param entities.Session session: The session to store.
+        :rtype: str
+        :return: The id of the created session.
+        """
+        resp = self._call('sessions', 'POST', session.to_dict())
+        session.id = resp['_id']
+        return session.id
+
+    def delete_session(self, session_id):
+        """Deletes a specific session.
+
+        :param str session_id: The session id.
+        :rtype: bool
+        :return: `True` on success and `False` otherwise.
+        """
+        self._call(  # delete linked instances
+            'instances', 'DELETE',
+            {'where': '\{"session_id": "%s"\}' % session_id}
+        )
+        resp = self._call('sessions/%s' % session_id, 'DELETE')
+        if resp is None:
+            return False
+        return True
+
+    def get_sessions_list(self):
+        """Gets list of active sessions.
+
+        :rtype: list of [entities.Session]
+        :return: List of session objects.
+        """
+        ret_val = []
+
+        resp = self._call('sessions', 'GET')
+        for entry in resp['_items']:
+            ret_val.append(entities.Session(**entry))
+
+        return ret_val
+
+    def get_session(self, session_id):
+        """Gets a session given its id.
+
+        :param str session_id: The session id.
+        :rtype: entities.Session|None
+        :return: The requested session or `None` if not found.
+        """
+        resp = self._call('sessions/%s' % session_id, 'GET')
+        if resp is None:
+            return None
+        return entities.Session(**resp)
+
+    #
     # Instance handling
     #
 
@@ -80,16 +137,22 @@ class APIClient:
         resp = self._call('instances/%s' % inst_id, 'DELETE')
         return (resp is not None)
 
-    def get_instances_list(self):
+    def get_instances_list(self, session_id=None):
         """
         Returns a list of instances.
 
-        :rtype: list
-        :return: List of `ice.entities.Instance` instances.
+        :param str session_id: The session id.
+        :rtype: list of [entities.Instance]
+        :return: List of `entities.Instance` instances.
         """
         ret_val = []
 
-        resp = self._call('instances', 'GET')
+        data = None
+        if session_id is not None:
+            data = {
+                'where': '\{"session_id": "%s"\}' % session_id
+            }
+        resp = self._call('instances', 'GET', data)
         for entry in resp['_items']:
             ret_val.append(entities.Instance(**entry))
 
@@ -100,7 +163,7 @@ class APIClient:
         Returns an instance given its id.
 
         :param str inst_id: The id of the instance.
-        :rtype: `ice.entities.Instance`
+        :rtype: entities.Instance
         :return: An instance or `None` in case of error.
         """
         resp = self._call('instances/%s' % inst_id, 'GET')
