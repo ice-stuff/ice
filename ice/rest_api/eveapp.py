@@ -10,7 +10,7 @@ class APIServer(Eve):
     # CHANGE ME: Extend this list to add domains
     #
 
-    _DOMAINS = [domain.InstancesDomain]
+    _DOMAINS = [domain.InstancesDomain, domain.SessionsDomain]
 
     #
     # Constructor
