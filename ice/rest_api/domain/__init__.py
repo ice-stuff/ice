@@ -14,6 +14,11 @@ class Domain(object):
 
     @classmethod
     def get_config(cls):
+        """Gets the configuration of the domain.
+
+        :rtype: dict
+        :return: An EVE configuration dictionary for the domain.
+        """
         config = {}
 
         # Paths
@@ -33,6 +38,11 @@ class Domain(object):
 
     @classmethod
     def _get_schema(cls):
+        """Expendable schema generator for the domain.
+
+        :rtype: dict
+        :return: An EVE compliant schema definition.
+        """
         return None
 
 
@@ -41,3 +51,4 @@ class Domain(object):
 #
 
 from .instances import InstancesDomain
+from .sessions import SessionsDomain

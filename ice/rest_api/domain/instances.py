@@ -10,9 +10,26 @@ class InstancesDomain(Domain):
     _ITEM_TITLE = 'instance'
     _ITEM_METHODS = ['GET', 'DELETE']
 
+    # @classmethod
+    # def get_config(cls):
+    #     cfg = super(InstancesDomain, cls).get_config()
+    #     cfg['url'] = r'sessions/<regex("[a-f0-9]{24}"):session_id>/instances'
+    #     return cfg
+
     @classmethod
     def _get_schema(cls):
         return {
+            # Session
+            'session_id': {
+                'type': 'objectid',
+                'data_relation': {
+                    'resource': 'sessions',
+                    'field': '_id',
+                    'embeddable': True
+                },
+                'required': True
+            },
+
             # Networking
             'networks': {
                 'type': 'list',
