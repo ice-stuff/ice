@@ -1,6 +1,5 @@
 """iCE entities."""
 
-
 #
 # Base entity class
 #
@@ -8,10 +7,10 @@
 class Entity(object):
     """Generic entity.
 
-    :ivar str id: The unique entity id.
-    :ivar datetime.DateTime created: When the entity was created.
-    :ivar datetime.DateTime update: When the entity was last modified.
-    :ivar str etag: A unique e-tag, used for version control.
+    :type id: str
+    :type created: datetime.datetime
+    :type update: datetime.datetime
+    :type etag: str
     """
 
     def __init__(self, **kwargs):
@@ -47,7 +46,7 @@ class Entity(object):
 class Session(Entity):
     """Represents an experimentation session.
 
-    :ivar str client_ip_addr: The IP address of the client.
+    :type client_ip_addr: str
     """
 
     def __init__(self, **kwargs):
@@ -64,19 +63,16 @@ class Session(Entity):
 class Instance(Entity):
     """Represents a cloud instance.
 
-    :ivar str session_id: The id of the session that owns the instance.
-    :ivar list networks: List of networks.
-    :ivar str public_ip_addr: Public IP address.
-    :ivar str public_reverse_dns: Public reverse DNS.
-    :ivar str cloud_id: An identifier for the cloud.
-    :ivar str vpc_id: Some identifier for the sub-network / security group or
-        VPC within the cloud, on which the instance belogs.
-    :ivar str ssh_username: SSH username. Optional, default: root.
-    :ivar str ssh_authorized_fingerprint: The SSH fingerprint of the authorized
-        SSH key.
-    :ivar int failed_pings_count: Amount of pings tha failed to the instance.
-    :ivar str status: The status of the instance. Takes values from the
-        `Instance.STATUS_*` constants.
+    :type session_id: str
+    :type networks: list
+    :type public_ip_addr: str
+    :type public_reverse_dns: str
+    :type cloud_id: str
+    :type vpc_id: str
+    :type ssh_username: str
+    :type ssh_authorized_fingerprint: str
+    :type failed_pings_count: int
+    :type status: str
     """
     #
     # Status attribute values
