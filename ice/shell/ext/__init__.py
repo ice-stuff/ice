@@ -12,15 +12,10 @@ class ShellExt(object):
 
         # Set dependencies
         self.config = shell.get_config()
-        self.api_client = shell.api_client
         self.logger = shell.get_logger()
 
-        # Session
-        self.current_session = None
-
     def start(self):
-        # Set session
-        self.current_session = self.shell.current_session
+        pass
 
     def stop(self):
         pass

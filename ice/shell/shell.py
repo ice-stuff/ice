@@ -5,8 +5,7 @@ import IPython
 from IPython.config import loader
 from IPython.terminal import embed
 
-from ice import entities
-from ice import api_client
+from ice import api
 from . import ext
 
 
@@ -15,18 +14,12 @@ class Shell(object):
 
     :type config: ice.config.Configuration
     :type logger: logging.Logger
-    :type api_client: ice.api_client.APIClient
-    :type current_session: ice.entities.Session
     """
 
-    def __init__(self, config, logger, api_client):
+    def __init__(self, config, logger):
         # Set dependencies
         self.config = config
-        self.api_client = api_client
         self.logger = logger
-
-        # Session
-        self.current_session = None
 
         # Default banner messages
         self._banner_messages = [
@@ -54,6 +47,7 @@ class Shell(object):
 
     def get_config(self):
         """Gets the configuration object.
+
         :rtype: ice.config.Configuration
         :return: The configuration object.
         """
@@ -61,6 +55,7 @@ class Shell(object):
 
     def get_logger(self):
         """Gets the iCE logger.
+
         :rtype: logging.Logger
         :return: The iCE logger.
         """
@@ -79,6 +74,7 @@ class Shell(object):
 
     def add_banner_message(self, msg):
         """Adds a message in the shell header.
+
         :param str msg: The message to add.
         """
         self._banner_messages.append(msg)
@@ -89,6 +85,7 @@ class Shell(object):
 
     def add_magic_function(self, alias, callback, usage=None):
         """Adds a magic function to the shell.
+
         :param str alias: The function alias.
         :param function callback: The callback function.
         :param str usage: The usage string.
@@ -104,6 +101,7 @@ class Shell(object):
 
     def add_magic_function_v2(self, alias, callback, parser=None):
         """Adds a magic function to the shell.
+
         :param str alias: Alias of the command
         :param function callback: The callback function.
         :param argparse.ArgumentParser parser: The argument parser.
@@ -122,11 +120,11 @@ class Shell(object):
     # Start shell
     #
 
-    def start(self):
-        """
-        Starts the shell.
+    def start(self, scripts_to_run=None):
+        """Starts the shell.
 
-        : raises Shell.Error: In case of error.
+        :param list of [str] scripts_to_run: List of scripts to run.
+        :raises Shell.Error: In case of error.
         """
         # Check if inside IPython shell already
         if IPython.get_ipython() is not None:
@@ -135,15 +133,7 @@ class Shell(object):
             )
 
         # Make session
-        try:
-            ip_addr = self.api_client.get_my_ip()
-        except api_client.APIClient.APIException:
-            self.logger.error('Failed to contact API!')
-            return
-        self.current_session = entities.Session(client_ip_addr=ip_addr)
-        if self.api_client.submit_session(self.current_session) is None:
-            self.logger.error('Failed to submit session!')
-            return
+        api.session.start()
 
         # Shell configuration
         shell_cfg = loader.Config()
@@ -176,7 +166,7 @@ class Shell(object):
             ext.stop()
 
         # Clean session
-        self.api_client.delete_session(self.current_session.id)
+        api.session.close()
 
     #
     # Help command
