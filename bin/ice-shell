@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
-from ice import shell, config, logging, api_client
+import sys
+
+from ice import shell, config, logging
 
 
 def main():
@@ -12,17 +14,12 @@ def main():
         _logger.setLevel(logging.DEBUG)
         _logger.debug('Setting log level to DEBUG')
 
-    # API configuration
-    _api_client = api_client.APIClient(
-        hostname=_cfg.get_var('shell', 'api_host', 'localhost'),
-        port=_cfg.get_int('shell', 'api_port', 5000)
-    )
-
     # Shell
-    s = shell.Shell(_cfg, _logger, _api_client)
+    s = shell.Shell(_cfg, _logger)
 
     # Start the shell
-    s.start()
+    s.start(sys.argv[1:])
+
 
 if __name__ == '__main__':
     main()
