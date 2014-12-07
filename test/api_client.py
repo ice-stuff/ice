@@ -1,11 +1,12 @@
 from unittest import TestCase
 
-import ice
+from ice import entities
+from ice import api_client
 
 
 class APIClientTest(TestCase):
     def setUp(self):
-        self.api = ice.APIClient('localhost', 5000)
+        self.api = api_client.APIClient('localhost', 5000)
 
     def tearDown(self):
         del self.api
@@ -40,7 +41,7 @@ class APIClientTest(TestCase):
         self.assertTrue(found)
 
     def _test_submit_session(self):
-        sess = ice.Session(
+        sess = entities.Session(
             client_ip_addr='127.0.0.1'
         )
         old_amt = len(self.api.get_sessions_list())
@@ -80,7 +81,7 @@ class APIClientTest(TestCase):
 
         instances = []
         for i in range(0, 10):
-            inst = ice.Instance(
+            inst = entities.Instance(
                 session_id=session.id,
                 cloud_id='AWS',
                 ssh_authorized_fingerprint='corrupted',
