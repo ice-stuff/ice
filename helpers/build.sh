@@ -1,0 +1,5 @@
+#!/bin/bash
+BASE_PATH=$(cd $(dirname $BASH_SOURCE)/.. && pwd)
+
+cd $BASE_PATH
+python setup.py bdist_wheel
