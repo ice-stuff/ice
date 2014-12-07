@@ -32,7 +32,7 @@ import socket
 # Globals
 #
 
-___version__ = '0.0.1'
+___version__ = '0.2.0'
 IS_ROOT = False  # is the user root?
 INSTANCE_ID_PATHS = ['/var/run/ice_instance_id']
 
@@ -165,13 +165,16 @@ def _parse_cmd(args):
     # Parse
     try:
         optlist, args = getopt.getopt(
-            args, 'a:s:v', ['api=', 'sess=', 'verbose']
+            args, 'a:s:dv', ['api=', 'sess=', 'debug', 'version']
         )
     except getopt.GetoptError as err:
         print '[ERROR] %s' % str(err)
         return None
     for o, a in optlist:
-        if o in ('--verbose', '-v'):
+        if o in ('--version', '-v'):
+            print 'iCE Agent v%s' % ___version__
+            sys.exit(0)
+        if o in ('--debug', '-d'):
             ret_val['verbose'] = True
         elif o in ('--sess', '-s'):
             ret_val['sessionId'] = a
@@ -386,7 +389,7 @@ def _make_urllib_request(cmd, ice_req):
     req = urllib2.Request(cmd['apiEndpoint'] + '/v1/instances')
     req.add_data(json.dumps(ice_req))
     req.add_header('Content-Type', 'application/json')
-    req.add_header('User-Agent', 'iCE Agent/%s' % ___version__)
+    req.add_header('User-Agent', 'iCE Agent/v%s' % ___version__)
     req.add_header('Session-Id', hashlib.sha1(cmd['sessionId']))
     return req
 
@@ -454,16 +457,16 @@ def _write_id(instance_id):
 #
 
 if __name__ == '__main__':
-    # Check if the user is or can be root
-    if not _is_root():
-        print '[ERROR] This script must run as root or as a non-password' \
-            + ' sudoer!'
-        sys.exit(1)
-
     # Parse the command line
     cmd = _parse_cmd(sys.argv[1:])
     if cmd is None:
         print '[ERROR] Failed to parse command line arguments!'
+        sys.exit(1)
+
+    # Check if the user is or can be root
+    if not _is_root():
+        print '[ERROR] This script must run as root or as a non-password' \
+            + ' sudoer!'
         sys.exit(1)
 
     # Get the request

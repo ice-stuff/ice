@@ -1,4 +1,5 @@
 """Entry point for the iCE application."""
-from .api_client import APIClient
-from .entities import Instance, Session
+from . import api
 from .tasks import Callable, Runner, Task, ParallelTask
+
+__VERSION__ = '0.2.0'
