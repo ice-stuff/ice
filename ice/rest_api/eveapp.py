@@ -18,7 +18,7 @@ class APIServer(Eve):
 
     def __init__(self, *args, **kwargs):
         # iCE
-        self.cfg = config.get_configuration()
+        self.cfg = config.get_configuration('api_server')
         in_debug = self.cfg.get_bool('api_server', 'debug', False)
         self.apiLogger = logging.get_logger('ice')
         if in_debug:
