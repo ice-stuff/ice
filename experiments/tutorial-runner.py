@@ -95,15 +95,15 @@ def _clean():
 if __name__ == '__main__':
     # Run
     try:
-        ec2_reservationult = _run()
+        result = _run()
     except Exception as ex:
         logger.error('Exception: {0:s}'.format(str(ex)))
-        ec2_reservationult = False
+        result = False
 
     # Clean
     _clean()
 
     # Exit code
-    if not ec2_reservationult:
+    if not result:
         sys.exit(1)
     sys.exit(0)
