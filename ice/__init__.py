@@ -2,4 +2,4 @@
 from . import api
 from .tasks import Callable, Runner, Task, ParallelTask
 
-__VERSION__ = '0.3.0'
+__VERSION__ = '1.2.0'

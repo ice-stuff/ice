@@ -2,12 +2,12 @@
 
 The entries bellow are in reverse chronological order.
 
-## v0.3.0 (x December 2014)
+## v1.2.0 (x December 2014)
 
 * Adds `ice.api.instances` for instances manipulation.
 * Fixes in the loggers and `logging.DEBUG`.
 
-## v0.2.0 (7 December 2014)
+## v1.1.0 (7 December 2014, look for tag v0.2.0)
 
 * Adds iCE session concept.
 * Adds `boto` library integration for supporting spawn/destroy operations in
@@ -16,6 +16,6 @@ The entries bellow are in reverse chronological order.
 * Heavy changes in shell and its extensions.
     * Built around `ice.api`.
 
-## v0.1.0 (November 2014)
+## v1.0.0 (November 2014, no tag for this version)
 
 * Initial release.
