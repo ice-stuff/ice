@@ -5,17 +5,16 @@ from ice import shell, config, logging
 
 
 def main():
-    # Configuration
-    _cfg = config.get_configuration('shell')
-
-    # Logger
-    _logger = logging.get_logger('ice.shell')
+    # Is verbose?
+    _cfg = config.get_configuration()
     if _cfg.get_bool('shell', 'debug', False):
-        _logger.setLevel(logging.DEBUG)
-        _logger.debug('Setting log level to DEBUG')
+        # Set root logger to debug
+        root_logger = logging.get_logger('ice')
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.debug('Setting log level to DEBUG')
 
     # Shell
-    s = shell.Shell(_cfg, _logger)
+    s = shell.Shell(_cfg, logging.get_logger('ice.shell'))
 
     # Start the shell
     s.start(sys.argv[1:])

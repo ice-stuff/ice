@@ -1,9 +1,22 @@
 #!/usr/bin/env python2
 from ice import rest_api
+from ice import config
+from ice import logging
 
 
 def main():
+    # Make the API server
     api = rest_api.APIServer()
+
+    # Is verbose?
+    _cfg = config.get_configuration('api_sever')
+    if _cfg.get_bool('api_server', 'debug', False):
+        # Set root logger to debug
+        root_logger = logging.get_logger('ice')
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.debug('Setting log level to DEBUG')
+
+    # Start the API server
     api.run()
 
 
