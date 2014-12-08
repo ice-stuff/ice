@@ -66,7 +66,7 @@ class Experiment(object):
 
         # Load the module
         self.logger.debug(
-            'About to load module \'{0:s}\' from path \'{0:s}\''
+            'About to load module \'{0:s}\' from path \'{1:s}\''
             .format(self.mod_name, parent_dir_path)
         )
         try:
