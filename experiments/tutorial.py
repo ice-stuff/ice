@@ -5,29 +5,42 @@ import matplotlib.pyplot as plt
 from fabric import api as fab
 import ice
 import json
+import datetime
+
 
 #
-# Data
+# Configuration
 #
 
-REG_EX = re.compile(r'([0-9\.]+) MB\/s', re.MULTILINE)
 SENT_BYTES_AMT = 536870912
-# SENT_BYTES_AMT = 1024
-RESULTS_DIR_PATH = os.path.expanduser(
-    '~/di_dev/Thesis/Results/Tutorial/%s' % str(SENT_BYTES_AMT)
+
+
+#
+# Globals
+#
+
+reg_ex = re.compile(r'([0-9\.]+) MB\/s', re.MULTILINE)
+curr_dt = datetime.datetime.now()
+results_dir_path = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    'tutorial',
+    '{0.year:04d}{0.month:02d}{0.day:02d}'.format(curr_dt),
+    '{0.hour:02d}{0.minute:02d}{0.second:02d}'.format(curr_dt)
 )
-if not os.path.isdir(RESULTS_DIR_PATH):
-    os.mkdir(RESULTS_DIR_PATH)
+if not os.path.isdir(results_dir_path):
+    os.makedirs(results_dir_path)
+
 
 #
 # Runners
 #
 
-
 @ice.Runner
 def re_plot(hosts):
     """Re-plots the graphs."""
-    data_file_path = os.path.join(RESULTS_DIR_PATH, 'data.json')
+    global results_dir_path
+
+    data_file_path = os.path.join(results_dir_path, 'data.json')
     if not os.path.isfile(data_file_path):
         print 'ERROR: File `%s` not found!' % data_file_path
         return
@@ -47,6 +60,8 @@ def re_plot(hosts):
 @ice.Runner
 def run(hosts):
     """Runs the tutorial."""
+    global results_dir_path
+
     # Copy keys
     fab.execute(copy_key, hosts)
 
@@ -60,7 +75,7 @@ def run(hosts):
         in_timings += it
 
     # Write data
-    f = open(os.path.join(RESULTS_DIR_PATH, 'data.json'), 'w')
+    f = open(os.path.join(results_dir_path, 'data.json'), 'w')
     f.write(
         json.dumps(
             {
@@ -94,6 +109,8 @@ def copy_key(hosts):
 @ice.Task
 def ping(hosts):
     """Sends a big packet from each host to each other host."""
+    global reg_ex
+
     with fab.settings(warn_only=True):
         out_timings = []
         in_timings = []
@@ -119,7 +136,7 @@ def ping(hosts):
             fab.run('rm ~/test', quiet=True)
 
             # Get the rate
-            matches = re.findall(REG_EX, output)
+            matches = re.findall(reg_ex, output)
             if matches is not None and len(matches) == 2:
                 out_timings.append(float(matches[0]))
                 in_timings.append(float(matches[1]))
@@ -133,6 +150,8 @@ def ping(hosts):
 #
 
 def _plot(out_timings, in_timings, file_name_suffix=None):
+    global results_dir_path
+
     # File paths
     if file_name_suffix is not None:
         out_file_path = 'out_timings-%s.png' % file_name_suffix
@@ -140,8 +159,8 @@ def _plot(out_timings, in_timings, file_name_suffix=None):
     else:
         out_file_path = 'out_timings.png'
         in_file_path = 'in_timings.png'
-    out_file_path = os.path.join(RESULTS_DIR_PATH, out_file_path)
-    in_file_path = os.path.join(RESULTS_DIR_PATH, in_file_path)
+    out_file_path = os.path.join(results_dir_path, out_file_path)
+    in_file_path = os.path.join(results_dir_path, in_file_path)
 
     # Out
     plt.xlabel('MB/s')
