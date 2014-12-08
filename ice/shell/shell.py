@@ -133,7 +133,10 @@ class Shell(object):
             )
 
         # Make session
-        api.session.start()
+        sess = api.session.start()
+        if sess is None:
+            raise Shell.Error('Failed to start session!')
+        self.logger.debug('Session id = {0.id:s}'.format(sess))
 
         # Shell configuration
         shell_cfg = loader.Config()
