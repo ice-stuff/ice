@@ -1,4 +1,6 @@
 """Wrapper class for API-related shell commands."""
+import argparse
+
 from . import ShellExt
 from ice import api_client
 from ice import api
@@ -19,6 +21,9 @@ class APIShell(ShellExt):
 
         # Register self
         shell.add_magic_function('inst_ls', self.ls_inst)
+        shell.add_magic_function_v2(
+            'inst_wait', self.run_wait, self.get_wait_parser()
+        )
         shell.add_magic_function(
             'inst_del', self.del_inst,
             usage='<Instance id> [<Instance id> ...]'
@@ -55,6 +60,26 @@ class APIShell(ShellExt):
                   + ' | {0.cloud_id:43s} | {0.created:30s} |'.format(inst)
         print '-' * 129
 
+    def get_wait_parser(self):
+        parser = argparse.ArgumentParser(prog='inst_wait', add_help=False)
+        parser.add_argument(
+            '-n', metavar='<Amount of instances>', dest='amt', type=int,
+            default=1
+        )
+        parser.add_argument(
+            '-t', metavar='<Timeout (sec.)>', dest='timeout', default=120
+        )
+        return parser
+
+    def run_wait(self, magics, args_raw):
+        """Waits for instances to appear."""
+        args = self.get_wait_parser().parse_args(args_raw.split())
+        res = api.instances.wait(args.amt, args.timeout)
+        if res:
+            self.logger.info('Instances are ready!')
+        else:
+            self.logger.error('Timeout!')
+
     def show_inst(self, magics, args_raw):
         """Shows information for a specific instance."""
         inst_ids = args_raw.split()
@@ -81,14 +106,11 @@ class APIShell(ShellExt):
 
         # Check arguments
         if len(inst_ids) == 0:
-            self.logger.error('Please specify instance id!')
-            return
+            inst_ids = None
 
         # Fire action
-        for inst_id in inst_ids:
-            if not self.api_client.delete_instance(inst_id):
-                self.logger.error('Failed to delete instance `%s`' % inst_id)
-                return
-            self.logger.info(
-                'Instance `%s` was successfully deleted!' % inst_id
-            )
+        res = api.instances.destroy(inst_ids)
+        if not res:
+            self.logger.error('Failed to delete one or more instances!')
+        else:
+            self.logger.info('All instances successfully deleted.')
