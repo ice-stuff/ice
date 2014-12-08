@@ -2,6 +2,11 @@
 
 The entries bellow are in reverse chronological order.
 
+## v0.3.0 (x December 2014)
+
+* Adds `ice.api.instances` for instances manipulation.
+* Fixes in the loggers and `logging.DEBUG`.
+
 ## v0.2.0 (7 December 2014)
 
 * Adds iCE session concept.
