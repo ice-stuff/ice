@@ -49,8 +49,7 @@ class EC2Shell(ShellExt):
     def get_ls_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_ls', add_help=False)
         parser.add_argument(
-            '-c', metavar='<Cloud Id>', dest='cloud_id',
-            default=None
+            '-c', metavar='<Cloud Id>', dest='cloud_id', default=None
         )
         parser.add_argument(
             '-s', action='store_true', dest='show_reservations',
