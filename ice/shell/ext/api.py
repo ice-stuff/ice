@@ -2,7 +2,6 @@
 import argparse
 
 from . import ShellExt
-from ice import api_client
 from ice import api
 
 
@@ -14,10 +13,6 @@ class APIShell(ShellExt):
         :param ice.shell.Shell shell: The shell.
         """
         super(APIShell, self).__init__(shell)
-        self.api_client = api_client.APIClient(
-            self.config.get_str('api_client', 'host', 'localhost'),
-            self.config.get_int('api_client', 'port', 5000)
-        )
 
         # Register self
         shell.add_magic_function('inst_ls', self.ls_inst)
@@ -40,8 +35,7 @@ class APIShell(ShellExt):
     def ls_inst(self, magis, args_raw):
         """Lists instances."""
         # Get instances
-        inst_list = self.api_client.get_instances_list(
-            api.session.get_current_session().id)
+        inst_list = api.instances.get_list()
         if inst_list is None:
             self.logger.error('Failed to find instances!')
             return
@@ -91,7 +85,7 @@ class APIShell(ShellExt):
 
         # Get instance
         for inst_id in inst_ids:
-            inst = self.api_client.get_instance(inst_id)
+            inst = api.instances.get(inst_id)
             if inst is None:
                 self.logger.error('Failed to find instance `%s`!' % inst_id)
                 return
