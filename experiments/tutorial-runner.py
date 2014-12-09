@@ -2,13 +2,10 @@
 import sys
 import os
 import argparse
+import datetime
 
 from ice import api
 from ice import logging
-
-
-
-
 
 
 
@@ -100,6 +97,41 @@ def _launch_instances(instances_amt=10, flavor=None, ami_id=None,
     return True
 
 
+def _make_dir_path(results_dir_path=None, flavor=None, ami_id=None,
+                   cloud_id=None):
+    # Path prefix
+    if results_dir_path is None:
+        ret_val = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)), 'results'
+        )
+    else:
+        ret_val = results_dir_path
+
+    # Cloud?
+    if cloud_id is not None:
+        ret_val = os.path.join(ret_val, cloud_id)
+    # Flavor?
+    if flavor is not None:
+        ret_val = os.path.join(ret_val, flavor)
+    # AMI Id?
+    if ami_id is not None:
+        ret_val = os.path.join(ret_val, ami_id)
+
+    # Add timestamp
+    curr_dt = datetime.datetime.now()
+    ret_val = os.path.join(
+        ret_val,
+        '{0.year:04d}{0.month:02d}{0.day:02d}'.format(curr_dt),
+        '{0.hour:02d}{0.minute:02d}{0.second:02d}'.format(curr_dt)
+    )
+
+    # Make path if it does not exist
+    if not os.path.isdir(ret_val):
+        os.makedirs(ret_val)
+
+    return ret_val
+
+
 def _run(results_dir_path=None):
     global logger
 
@@ -150,16 +182,24 @@ if __name__ == '__main__':
 
     try:
         # Spawn VMs
+        logger.info(
+            'n={0.instances_amt:d}, flavor={0.flavor:s},'.format(args)
+            + ' ami_id={0.ami_id:s}, cloud_id={0.cloud_id:s}.'.format(args)
+        )
         result = _launch_instances(
             args.instances_amt, args.flavor, args.ami_id, args.cloud_id
         )
 
         # Run
         if result:
-            if args.results_dir_path is not None \
-                    and not os.path.isdir(args.results_dir_path):
-                os.makedirs(args.results_dir_path)
-            result = _run(args.results_dir_path)
+            # Get results directory path
+            results_dir_path = _make_dir_path(
+                args.results_dir_path, args.flavor, args.ami_id, args.cloud_id
+            )
+            logger.info('results_dir_path={0}.'.format(results_dir_path))
+
+            # Run
+            result = _run(results_dir_path)
     except Exception as ex:
         logger.error('Exception: {0:s}'.format(str(ex)))
         result = False
