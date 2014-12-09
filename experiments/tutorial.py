@@ -1,34 +1,19 @@
 """A test experiment"""
 import os
 import re
+import json
+
 import matplotlib.pyplot as plt
 from fabric import api as fab
+
 import ice
-import json
-import datetime
 
 
 #
 # Configuration
 #
 
-SENT_BYTES_AMT = 536870912
-
-
-#
-# Globals
-#
-
-reg_ex = re.compile(r'([0-9\.]+) MB\/s', re.MULTILINE)
-curr_dt = datetime.datetime.now()
-results_dir_path = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
-    'tutorial',
-    '{0.year:04d}{0.month:02d}{0.day:02d}'.format(curr_dt),
-    '{0.hour:02d}{0.minute:02d}{0.second:02d}'.format(curr_dt)
-)
-if not os.path.isdir(results_dir_path):
-    os.makedirs(results_dir_path)
+DEF_SENT_BYTES_AMT = 536870912
 
 
 #
@@ -36,9 +21,10 @@ if not os.path.isdir(results_dir_path):
 #
 
 @ice.Runner
-def re_plot(hosts):
+def re_plot(hosts, results_dir_path=None):
     """Re-plots the graphs."""
-    global results_dir_path
+    if results_dir_path is None:
+        results_dir_path = os.path.abspath(os.path.dirname(__file__))
 
     data_file_path = os.path.join(results_dir_path, 'data.json')
     if not os.path.isfile(data_file_path):
@@ -51,16 +37,17 @@ def re_plot(hosts):
     f.close()
 
     # Re-plot
-    out_file_path, in_file_path = _plot(d['out'], d['in'])
+    out_file_path, in_file_path = _plot(results_dir_path, d['out'], d['in'])
 
     # Print
     print 'Look for %s and %s.' % (out_file_path, in_file_path)
 
 
 @ice.Runner
-def run(hosts):
+def run(hosts, results_dir_path=None, sent_bytes_amt=DEF_SENT_BYTES_AMT):
     """Runs the tutorial."""
-    global results_dir_path
+    if results_dir_path is None:
+        results_dir_path = os.path.abspath(os.path.dirname(__file__))
 
     # Copy keys
     fab.execute(copy_key, hosts)
@@ -68,7 +55,7 @@ def run(hosts):
     # Experimentation
     in_timings = []
     out_timings = []
-    res = fab.execute(ping, hosts)
+    res = fab.execute(ping, hosts, sent_bytes_amt)
     for key, ret_val in res.items():
         ot, it = ret_val
         out_timings += ot
@@ -88,7 +75,8 @@ def run(hosts):
     f.close()
 
     # Plot
-    out_file_path, in_file_path = _plot(out_timings, in_timings)
+    out_file_path, in_file_path = _plot(results_dir_path, out_timings,
+                                        in_timings)
 
     # Print
     print 'Look for %s and %s.' % (out_file_path, in_file_path)
@@ -107,9 +95,9 @@ def copy_key(hosts):
 
 
 @ice.Task
-def ping(hosts):
+def ping(hosts, sent_bytes_amt=DEF_SENT_BYTES_AMT):
     """Sends a big packet from each host to each other host."""
-    global reg_ex
+    reg_ex = re.compile(r'([0-9\.]+) MB\/s', re.MULTILINE)
 
     with fab.settings(warn_only=True):
         out_timings = []
@@ -125,7 +113,7 @@ def ping(hosts):
 
             # Run transfer
             cmd = 'sudo dd if=/dev/xvda1 bs=1024 count={:d}'.format(
-                SENT_BYTES_AMT / 1024
+                sent_bytes_amt / 1024
             )
             cmd += ' | ssh -o "StrictHostKeyChecking no" {0:s} "{1:s}"'.format(
                 addr, 'dd of=~/test'
@@ -142,16 +130,14 @@ def ping(hosts):
                 in_timings.append(float(matches[1]))
 
         print 'Host %s done!' % fab.env.host_string
-        return (out_timings, in_timings)
+        return out_timings, in_timings
 
 
 #
 # Helpers
 #
 
-def _plot(out_timings, in_timings, file_name_suffix=None):
-    global results_dir_path
-
+def _plot(results_dir_path, out_timings, in_timings, file_name_suffix=None):
     # File paths
     if file_name_suffix is not None:
         out_file_path = 'out_timings-%s.png' % file_name_suffix
@@ -186,4 +172,4 @@ def _plot(out_timings, in_timings, file_name_suffix=None):
     plt.savefig(in_file_path)
     plt.close()
 
-    return (out_file_path, in_file_path)
+    return out_file_path, in_file_path
