@@ -49,11 +49,25 @@ def _run():
         return False
     logger.info('EC2 reservation id = {0.id:s}.'.format(ec2_reservation))
     logger.info('Waiting for EC2 instances to come up...')
-    api.ec2.wait()
+    ret_val = api.ec2.wait(120)
+    if ret_val:
+        logger.info('All EC2 instances came up.')
+    else:
+        logger.error(
+            'Timeout while waiting for the EC2 instances to come up!'
+        )
+        return False
 
     # Wait for them to join the pool
     logger.info('Waiting for instances to join the pool...')
-    api.instances.wait(INSTANCES_AMT)
+    ret_val = api.instances.wait(INSTANCES_AMT, 600)
+    if ret_val:
+        logger.info('{0:d} instances joined the pool.'.format(INSTANCES_AMT))
+    else:
+        logger.error(
+            'Timeout while waiting for the instances to join the pool!'
+        )
+        return False
 
     # Run the experiment
     logger.info('Running the experiment...')
