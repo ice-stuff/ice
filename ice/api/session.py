@@ -26,7 +26,7 @@ def start():
     :rtype: ice.entities.Session
     :return: The new session or `None` in case of error.
     """
-    global _api_client, _logger
+    global _api_client, _logger, _current_session
 
     # Get IP address of the client
     try:
@@ -43,6 +43,9 @@ def start():
         _logger.error('Failed to submit session!')
         return None
 
+    # Register as current session
+    _current_session = ret_val
+
     return ret_val
 
 
@@ -57,7 +60,7 @@ def get_current_session():
     # Is current session set?
     if _current_session is None:
         # no, start a new session
-        _current_session = start()
+        start()
     return _current_session
 
 
