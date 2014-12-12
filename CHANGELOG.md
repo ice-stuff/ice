@@ -2,7 +2,7 @@
 
 The entries bellow are in reverse chronological order.
 
-## v1.2.0 (x December 2014)
+## v1.2.0 (12 December 2014)
 
 * Adds `ice.api.instances` for instances manipulation.
 * Fixes in the loggers and `logging.DEBUG`.
