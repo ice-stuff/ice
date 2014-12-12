@@ -1,15 +1,15 @@
 """IPython shell wrapper class."""
-import argparse
-
 import IPython
 from IPython.config import loader
 from IPython.terminal import embed
 
+import ice
 from ice import api
 from . import ext
 
 
 class Shell(object):
+
     """IPython shell wrapper class.
 
     :type config: ice.config.Configuration
@@ -24,6 +24,7 @@ class Shell(object):
         # Default banner messages
         self._banner_messages = [
             'Welcome to iCE!',
+            'iCE version v{0:s}'.format(ice.__VERSION__),
             'Try help to have a look into the provided commands',
             'You may leave this shell by typing `exit` or pressing Ctrl+D',
             'Try `h <Command>` to get usage information for a given command, or'
@@ -34,6 +35,7 @@ class Shell(object):
         self._magic_functions = []
         self._magic_functions_dict = {}
         self.add_magic_function('h', self.run_h)
+        self.add_magic_function('version', self.run_version)
 
         # Add shells extensions
         self._extensions = []
@@ -151,7 +153,7 @@ class Shell(object):
             banner1='* ' + str('*' * 68) + '\n'
                     + '\n'.join(
                 ['* %s' % msg for msg in self._banner_messages]) + '\n'
-                    + '* ' + str('*' * 68),
+            + '* ' + str('*' * 68),
             exit_msg='See ya...'
         )
         for entry in self._magic_functions:
@@ -174,6 +176,10 @@ class Shell(object):
     #
     # Help command
     #
+
+    def run_version(self, magics, args_raw):
+        """Prints the version of iCE."""
+        print 'iCE version v{0:s}'.format(ice.__VERSION__)
 
     def run_h(self, magics, definition):
         """Shows list of commands."""
