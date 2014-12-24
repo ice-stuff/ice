@@ -23,12 +23,10 @@ class Shell(object):
 
         # Default banner messages
         self._banner_messages = [
-            'Welcome to iCE!',
-            'iCE version v{0:s}'.format(ice.__VERSION__),
-            'Try help to have a look into the provided commands',
+            'Welcome to iCE version v{0:s}!'.format(ice.__VERSION__),
             'You may leave this shell by typing `exit` or pressing Ctrl+D',
-            'Try `h <Command>` to get usage information for a given command, or'
-            + ' `h` for looking into a brief description of all commands.'
+            'Type `h <Command>` to get usage information for a given command,',
+            'or `h` for looking into a brief description of all commands.'
         ]
 
         # Magic functions

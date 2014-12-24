@@ -6,6 +6,7 @@ from ice import api
 
 
 class EC2Shell(ShellExt):
+
     """Wrapper class for EC2-like cloud related shell commands."""
 
     def __init__(self, shell):
@@ -153,13 +154,13 @@ class EC2Shell(ShellExt):
         print '-' * 129
         print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
             .format(
-            'Id',
-            'AMI Id',
-            'Instance type',
-            'Public IP DNS',
-            'Status',
-            'Launched on'
-        )
+                'Id',
+                'AMI Id',
+                'Instance type',
+                'Public IP',
+                'Status',
+                'Launched on'
+            )
         print '-' * 129
         for reservation in reservations:
             if show_reservations:
@@ -180,13 +181,13 @@ class EC2Shell(ShellExt):
         print '-' * 129
         print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
             .format(
-            'Id',
-            'AMI Id',
-            'Instance type',
-            'Public IP DNS',
-            'Status',
-            'Launched on'
-        )
+                'Id',
+                'AMI Id',
+                'Instance type',
+                'Public IP',
+                'Status',
+                'Launched on'
+            )
         print '-' * 129
         for inst in instances:
             print self._format_instance(inst)
