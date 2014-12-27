@@ -2,7 +2,7 @@
 
 The entries bellow are in reverse chronological order.
 
-## v1.2.1 (x December 2014)
+## v1.2.1 (27 December 2014)
 
 * Fixes bug with session instances pools separation.
 * Fixes bug with experiment execution and instances list.
