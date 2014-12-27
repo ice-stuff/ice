@@ -39,9 +39,17 @@ class EC2Shell(ShellExt):
     def stop(self):
         super(EC2Shell, self).stop()
 
-        # Destroy instances
+        # Build dictionary of lists of instance ids
+        clouds = {}
         for inst_id, entry in self._instances.items():
-            api.ec2.destroy(inst_id, entry['cloud_id'])
+            key = entry['cloud_id']
+            if key not in clouds:
+                clouds[key] = []
+            clouds[key].append(inst_id)
+
+        # Call APIs
+        for cloud_id, instance_ids in clouds.items():
+            api.ec2.destroy(instance_ids, cloud_id)
 
     #
     # Commands
@@ -61,7 +69,11 @@ class EC2Shell(ShellExt):
     def run_ls(self, magics, args_raw):
         """Lists EC2 instances."""
         args = self.get_ls_parser().parse_args(args_raw.split())
+
+        # Call API to get the reservations
         reservations = api.ec2.get_list(args.cloud_id)
+
+        # Print
         self._print_reservations(reservations, args.show_reservations)
 
     def get_create_parser(self):
@@ -87,12 +99,14 @@ class EC2Shell(ShellExt):
             self.logger.error('Failed to run instances!')
             return
 
-        # Stor VMs
+        # Store VMs
         for inst in reservation.instances:
             self._instances[inst.id] = {
                 'inst': inst,
                 'cloud_id': args.cloud_id
             }
+
+        # Print
         self._print_reservations([reservation])
 
     def get_wait_parser(self):
@@ -108,7 +122,11 @@ class EC2Shell(ShellExt):
     def run_wait(self, magics, args_raw):
         """Wait for 'pending' instances."""
         args = self.get_wait_parser().parse_args(args_raw.split())
+
+        # Run the API-call
         res = api.ec2.wait(args.timeout, args.cloud_id)
+
+        # Print
         if res:
             self.logger.info('No instances in pending state now!')
         else:
@@ -127,7 +145,15 @@ class EC2Shell(ShellExt):
     def run_destroy(self, magics, args_raw):
         """Destroys existing EC2 instances."""
         args = self.get_destroy_parser().parse_args(args_raw.split())
+
+        # Destroy VMs
         instances = api.ec2.destroy(args.instance_ids, args.cloud_id)
+
+        # De-register them from internal structure
+        for inst in instances:
+            del self._instances[inst.id]
+
+        # Print
         self._print_instances(instances)
 
     #
