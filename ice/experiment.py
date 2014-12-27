@@ -13,6 +13,7 @@ class Experiment(object):
 
     :type logger: logging.Logger
     :type api_client: ice.api_client.APIClient
+    :type session: ice.entities.Session
     :type module: module
     :type mod_name: str
     :type mod_file_path : str
@@ -21,16 +22,18 @@ class Experiment(object):
     class LoadError(Exception):
         pass
 
-    def __init__(self, logger, api_client, file_path):
+    def __init__(self, logger, session, api_client, file_path):
         """Constructs a new experiment.
 
-        :param logging.Logger logger:
-        :param ice.api_client.APIClient api_client:
-        :param str file_path:
+        :param logging.Logger logger: The logger object.
+        :param ice.entities.Session session: The current session.
+        :param ice.api_client.APIClient api_client: iCE API client.
+        :param str file_path: File path to the experiment file.
         :raises ice.experiment.Experiment.LoadError: If module fails to load.
         """
         self.logger = logger
         self.api_client = api_client
+        self.session = session
 
         # Open experiment file
         if not os.path.isfile(file_path):
@@ -153,7 +156,7 @@ class Experiment(object):
 
         # Fetch hosts
         hosts = {}
-        instances = self.api_client.get_instances_list()
+        instances = self.api_client.get_instances_list(self.session.id)
         for inst in instances:
             host_string = inst.get_host_string()
             hosts[host_string] = inst
