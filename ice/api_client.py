@@ -64,7 +64,7 @@ class APIClient:
         :rtype: str
         :return: The id of the created session.
         """
-        resp = self._call('sessions', 'POST', session.to_dict())
+        resp = self._call('sessions', 'POST', data=session.to_dict())
         session.id = resp['_id']
         return session.id
 
@@ -77,7 +77,7 @@ class APIClient:
         """
         self._call(  # delete linked instances
             'instances', 'DELETE',
-            {'where': '\{"session_id": "%s"\}' % session_id}
+            params={'where': '{"session_id": "%s"}' % session_id}
         )
         resp = self._call('sessions/%s' % session_id, 'DELETE')
         if resp is None:
@@ -122,7 +122,7 @@ class APIClient:
         :rtype: str
         :return: The instance id on success and `None` on failure.
         """
-        resp = self._call('instances', 'POST', inst.to_dict())
+        resp = self._call('instances', 'POST', data=inst.to_dict())
         inst.id = resp['_id']
         return inst.id
 
@@ -145,14 +145,16 @@ class APIClient:
         :rtype: list of [entities.Instance]
         :return: List of `entities.Instance` instances.
         """
-        ret_val = []
-
-        data = None
+        # Make calls
+        params = None
         if session_id is not None:
-            data = {
-                'where': '\{"session_id": "%s"\}' % session_id
+            params = {
+                'where': '{"session_id": "%s"}' % session_id
             }
-        resp = self._call('instances', 'GET', data)
+        resp = self._call('instances', 'GET', params=params)
+
+        # Process results
+        ret_val = []
         for entry in resp['_items']:
             ret_val.append(entities.Instance(**entry))
 
@@ -193,12 +195,14 @@ class APIClient:
         url += '/%s/%s' % (self.VERSION, suffix)
         return url
 
-    def _call(self, url_suffix, method='GET', data=None, return_raw=False):
+    def _call(self, url_suffix, method='GET', params=None, data=None,
+              return_raw=False):
         """
         Performs a request to the API.
 
         :param str url_suffix: The URL suffix (without leading /).
         :param str method: An HTTP verb.
+        :param dict params: URL parameters.
         :param dict data: The data dictionary.
         :param bool return_raw: If set, response will be a string.
         :rtype: dict|str
@@ -213,7 +217,7 @@ class APIClient:
             # Unknown HTTP verb
             return None
 
-        # Make the request
+        # Build the keyword arguments of the method
         args = {
             'headers': {
                 'User-Agent': 'iCE Client/%s' % ___version__
@@ -222,8 +226,10 @@ class APIClient:
         if data is not None:
             args['headers']['Content-Type'] = 'application/json'
             args['data'] = json.dumps(data)
+        if params is not None:
+            args['params'] = params
 
-        # Run the request
+        # Run the method
         try:
             resp = method(self._get_url(url_suffix), **args)
         except exceptions.RequestException as err:
