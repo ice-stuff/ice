@@ -2,6 +2,12 @@
 
 The entries bellow are in reverse chronological order.
 
+## v1.2.1 (x December 2014)
+
+* Fixes bug with session instances pools separation.
+* Fixes bug with experiment execution and instances list.
+* Fixes bug with the clean up of instances from EC2 shell extension.
+
 ## v1.2.0 (12 December 2014)
 
 * Adds `ice.api.instances` for instances manipulation.
