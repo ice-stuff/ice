@@ -32,6 +32,12 @@ def create(amt, ami_id=None, flavor=None, cloud_id=None, sess=None):
     """
     global _ec2_client
 
+    # Is session defined?
+    if sess is None:
+        sess = session.get_current_session()
+        if sess is None:
+            return None
+
     # Compile the user data
     user_data = _compile_user_data(sess)
 
@@ -87,7 +93,7 @@ def get_list(cloud_id=None):
 # Helpers
 #
 
-def _compile_user_data(sess=None):
+def _compile_user_data(sess):
     """Compiles the user-data string for new VMs.
 
     :param ice.entities.Session sess: Active iCE session.
@@ -95,13 +101,6 @@ def _compile_user_data(sess=None):
     :return: Base64 encoded user data.
     """
     global _config
-
-    # Get session id
-    if sess is None:
-        sess = session.get_current_session()
-        if sess is None:
-            return None
-    session_id = sess.id
 
     # Compile user data
     user_data = """#!/bin/bash
@@ -113,7 +112,7 @@ chmod +x ./ice-register-self.py
 """.format(
         _config.get_str('api_client', 'host', 'localhost'),
         _config.get_int('api_client', 'port', 5000),
-        session_id
+        sess.id
     )
 
     # Encode and return
