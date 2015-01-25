@@ -14,6 +14,7 @@ class Shell(object):
 
     :type config: ice.config.Configuration
     :type logger: logging.Logger
+    ;type is_session_shared: bool
     """
 
     def __init__(self, config, logger):
@@ -34,6 +35,8 @@ class Shell(object):
         self._magic_functions_dict = {}
         self.add_magic_function('h', self.run_h)
         self.add_magic_function('version', self.run_version)
+        if self.config.get_bool('shell', 'debug', False):
+            self.add_magic_function('sess_cd', self.run_sess_cd)
 
         # Add shells extensions
         self._extensions = []
@@ -137,6 +140,7 @@ class Shell(object):
         if sess is None:
             raise Shell.Error('Failed to start session!')
         self.logger.debug('Session id = {0.id:s}'.format(sess))
+        self.is_session_shared = False
 
         # Shell configuration
         shell_cfg = loader.Config()
@@ -169,7 +173,12 @@ class Shell(object):
             ext.stop()
 
         # Clean session
-        api.session.close()
+        if not self.is_session_shared:
+            api.session.close()
+        else:
+            self.logger.info(
+                'Current session will not be closed, since it is shared!'
+            )
 
     #
     # Help command
@@ -201,4 +210,20 @@ class Shell(object):
                 ' * %s: %s' % (entry['alias'], entry['cb'].__doc__)
                 for entry in self._magic_functions
             ]
+        )
+
+    def run_sess_cd(self, magics, session_id):
+        """Changes session."""
+        # Load session
+        sess = api.session.load_session(session_id)
+        if sess is None:
+            raise Shell.Error('Failed to load session!')
+        self.logger.debug('New session id = {0.id:s}'.format(sess))
+
+        # Set session as shared, to avoid closing it.
+        self.is_session_shared = True
+        self.logger.debug(
+            'Loaded session is now shared. Closing this shell will not close'
+            + ' the session. Only the parent shell of current session can'
+            + ' close it.'
         )
