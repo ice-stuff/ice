@@ -58,6 +58,7 @@ def get_configuration(component=None):
 
 
 class Configuration(object):
+
     """Wrapper around ConfigParser.RawConfigParser class. It adds features:
 
     ## How it works
@@ -203,7 +204,8 @@ class Configuration(object):
         :raises: ice.config.Configuration.OptionNotFound
         :rtype: bool
         """
-        return self.get_var(section, option, default_value, required, type=bool)
+        return self.get_var(section, option, default_value, required,
+                            type=bool)
 
     def get_list(self, section, reg_ex):
         """Retrieves a list of values that are in a given section, under option
