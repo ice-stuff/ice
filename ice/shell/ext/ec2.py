@@ -151,7 +151,8 @@ class EC2Shell(ShellExt):
 
         # De-register them from internal structure
         for inst in instances:
-            del self._instances[inst.id]
+            if inst.id in self._instances:
+                del self._instances[inst.id]
 
         # Print
         self._print_instances(instances)
