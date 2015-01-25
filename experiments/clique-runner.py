@@ -8,8 +8,6 @@ from ice import api
 from ice import logging
 
 
-
-
 #
 # Global
 #
@@ -140,7 +138,7 @@ def _run(results_dir_path=None):
     exp = api.experiment.load(
         os.path.join(
             os.path.abspath(os.path.dirname(__file__)),
-            'tutorial.py'
+            'clique.py'
         )
     )
 
