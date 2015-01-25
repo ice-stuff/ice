@@ -75,11 +75,21 @@ class APIClient:
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
-        self._call(  # delete linked instances
-            'instances', 'DELETE',
-            params={'where': '{"session_id": "%s"}' % session_id}
-        )
+        # Delete linked instances
+        #   TODO: I cannot figure out why commented-out code does not work. It
+        #       deletes all the instances (of all the sessions)!
+        instances = self.get_instances_list(session_id)
+        for inst in instances:
+            self.delete_instance(inst)
+        # params = {
+        #     'where': '{"session_id": "%s"}' % session_id
+        # }
+        # resp = self._call('instances', 'DELETE', params=params)
+
+        # Delete session
         resp = self._call('sessions/%s' % session_id, 'DELETE')
+
+        # Return
         if resp is None:
             return False
         return True
