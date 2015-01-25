@@ -9,6 +9,7 @@ from . import ShellExt
 
 
 class FabricShell(ShellExt):
+
     """Wrapper class for Fabric-related shell commands."""
 
     def __init__(self, shell):
@@ -123,7 +124,7 @@ class FabricShell(ShellExt):
             func_name = 'run'  # default
 
         # Run the task
-        res = exp.run(func_name)
+        res = exp.run(func_name, args=args)
         if res is False:
             self.logger.error(
                 'Task `%s.%s` failed!' % (experiment_name, func_name)
