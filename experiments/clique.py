@@ -116,7 +116,7 @@ def ping(hosts, sent_bytes_amt=DEF_SENT_BYTES_AMT):
                 sent_bytes_amt / 1024
             )
             cmd += ' | ssh -o "StrictHostKeyChecking no" {0:s} "{1:s}"'.format(
-                addr, 'dd of=~/test'
+                addr, 'dd of=/dev/null'
             )
             output = fab.run(cmd)
 
