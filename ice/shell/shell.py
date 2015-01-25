@@ -24,7 +24,7 @@ class Shell(object):
 
         # Default banner messages
         self._banner_messages = [
-            'Welcome to iCE version v{0:s}!'.format(ice.__VERSION__),
+            'Welcome to iCE version v{0:s}!'.format(ice.__version__),
             'You may leave this shell by typing `exit` or pressing Ctrl+D',
             'Type `h <Command>` to get usage information for a given command,',
             'or `h` for looking into a brief description of all commands.'
@@ -186,7 +186,7 @@ class Shell(object):
 
     def run_version(self, magics, args_raw):
         """Prints the version of iCE."""
-        print 'iCE version v{0:s}'.format(ice.__VERSION__)
+        print 'iCE version v{0:s}'.format(ice.__version__)
 
     def run_h(self, magics, definition):
         """Shows list of commands."""

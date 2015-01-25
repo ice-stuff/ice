@@ -32,7 +32,7 @@ import socket
 # Globals
 #
 
-___version__ = '1.2.1'
+__version__ = '1.3.0'
 IS_ROOT = False  # is the user root?
 INSTANCE_ID_PATHS = ['/var/run/ice_instance_id']
 
@@ -172,7 +172,7 @@ def _parse_cmd(args):
         return None
     for o, a in optlist:
         if o in ('--version', '-v'):
-            print 'iCE Agent v%s' % ___version__
+            print 'iCE Agent v%s' % __version__
             sys.exit(0)
         if o in ('--debug', '-d'):
             ret_val['verbose'] = True
@@ -389,7 +389,7 @@ def _make_urllib_request(cmd, ice_req):
     req = urllib2.Request(cmd['apiEndpoint'] + '/v1/instances')
     req.add_data(json.dumps(ice_req))
     req.add_header('Content-Type', 'application/json')
-    req.add_header('User-Agent', 'iCE Agent/v%s' % ___version__)
+    req.add_header('User-Agent', 'iCE Agent/v%s' % __version__)
     req.add_header('Session-Id', hashlib.sha1(cmd['sessionId']))
     return req
 
