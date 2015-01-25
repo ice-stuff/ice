@@ -20,6 +20,7 @@ _current_session = None
 # API
 #
 
+
 def start():
     """Start a session.
 
@@ -47,6 +48,30 @@ def start():
     _current_session = ret_val
 
     return ret_val
+
+
+def load_session(session_id):
+    """Loads specific session.
+
+    :param str session_id: The id of the session to load.
+    :rtype: ice.entities.Session
+    :return: The loaded session, if found, or `None`.
+    """
+    global _current_session, _api_client, _logger, _session_shared
+
+    # Find the session in the DB
+    sess = _api_client.get_session(session_id)
+    if sess is None:
+        _logger.error('Session {0:s} was not found!'.format(session_id))
+        return None
+
+    # Close current session, if there is one.
+    close()
+
+    # Set loaded session as current
+    _current_session = sess
+
+    return sess
 
 
 def get_current_session():
@@ -78,4 +103,7 @@ def close(session=None):
             return
 
     # Delete session from server
+    #   TODO: If the session is shared between multiple users, it must not be
+    #       deleted by the DB. Instead a registration functionality must be
+    #       added to keep track of shells that use a session.
     _api_client.delete_session(session.id)
