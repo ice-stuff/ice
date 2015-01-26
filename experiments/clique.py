@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from fabric import api as fab
 
 import ice
+from ice import config
 
 
 #
@@ -15,10 +16,10 @@ import ice
 
 DEF_SENT_BYTES_AMT = 536870912
 
-
 #
 # Runners
 #
+
 
 @ice.Runner
 def re_plot(hosts, results_dir_path=None):
@@ -48,9 +49,14 @@ def run(hosts, results_dir_path=None, sent_bytes_amt=DEF_SENT_BYTES_AMT):
     """Runs the tutorial."""
     if results_dir_path is None:
         results_dir_path = os.path.abspath(os.path.dirname(__file__))
+    sent_bytes_amt = int(sent_bytes_amt)
 
     # Copy keys
-    fab.execute(copy_key, hosts)
+    cfg = config.get_configuration()
+    ssh_id_file_path = os.path.expanduser(
+        cfg.get_str('shell', 'ssh_id_file_path', '~/.ssh/id_rsa')
+    )
+    fab.execute(copy_key, hosts, ssh_id_file_path)
 
     # Experimentation
     in_timings = []
@@ -87,10 +93,10 @@ def run(hosts, results_dir_path=None, sent_bytes_amt=DEF_SENT_BYTES_AMT):
 #
 
 @ice.ParallelTask
-def copy_key(hosts):
+def copy_key(hosts, ssh_id_file_path):
     """Necessary first step, copies SSH keys to all instances."""
-    fab.put(os.path.expanduser('~/.ssh/id_rsa'), '/home/ec2-user/.ssh')
-    fab.put(os.path.expanduser('~/.ssh/id_rsa.pub'), '/home/ec2-user/.ssh')
+    fab.put(ssh_id_file_path, '/home/ec2-user/.ssh/id_rsa')
+    fab.put(ssh_id_file_path + '.pub', '/home/ec2-user/.ssh/id_rsa.pub')
     fab.run('chmod 600 ~/.ssh/id_rsa*')
 
 
@@ -107,16 +113,12 @@ def ping(hosts, sent_bytes_amt=DEF_SENT_BYTES_AMT):
             if hs == fab.env.host_string:
                 continue
 
-            # Get address
-            net = inst.networks[0]
-            addr = net['addr'].replace('/20', '')
-
             # Run transfer
             cmd = 'sudo dd if=/dev/xvda1 bs=1024 count={:d}'.format(
                 sent_bytes_amt / 1024
             )
             cmd += ' | ssh -o "StrictHostKeyChecking no" {0:s} "{1:s}"'.format(
-                addr, 'dd of=/dev/null'
+                inst.public_ip_addr, 'dd of=/dev/null'
             )
             output = fab.run(cmd)
 
