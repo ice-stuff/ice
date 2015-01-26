@@ -2,6 +2,16 @@
 
 The entries bellow are in reverse chronological order.
 
+## v1.3.0 (x January 2015)
+
+* SSH key can be specified in the configuration file.
+* Better support for multiple clouds.
+* Adds `sess_cd` command in the `ice-shell` to switch to a different active
+    session.
+* Fixes in task execution.
+* Fixes EC2 instances destruction bug.
+* Fixes session closing bug on deletion of linked instances.
+
 ## v1.2.1 (27 December 2014)
 
 * Fixes bug with session instances pools separation.
