@@ -3,10 +3,8 @@ import json
 import requests
 from requests import exceptions
 
+import ice
 from ice import entities
-
-
-___version__ = '0.0.1'
 
 
 class APIClient:
@@ -87,12 +85,13 @@ class APIClient:
         # resp = self._call('instances', 'DELETE', params=params)
 
         # Delete session
-        resp = self._call('sessions/%s' % session_id, 'DELETE')
-
-        # Return
-        if resp is None:
+        try:
+            resp = self._call('sessions/%s' % session_id, 'DELETE')
+            if resp is None:
+                return False
+            return True
+        except APIClient.APIException:
             return False
-        return True
 
     def get_sessions_list(self):
         """Gets list of active sessions.
@@ -115,10 +114,13 @@ class APIClient:
         :rtype: entities.Session|None
         :return: The requested session or `None` if not found.
         """
-        resp = self._call('sessions/%s' % session_id, 'GET')
-        if resp is None:
+        try:
+            resp = self._call('sessions/%s' % session_id, 'GET')
+            if resp is None:
+                return None
+            return entities.Session(**resp)
+        except APIClient.APIException:
             return None
-        return entities.Session(**resp)
 
     #
     # Instance handling
@@ -144,8 +146,11 @@ class APIClient:
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
-        resp = self._call('instances/%s' % inst_id, 'DELETE')
-        return (resp is not None)
+        try:
+            resp = self._call('instances/%s' % inst_id, 'DELETE')
+            return (resp is not None)
+        except APIClient.APIException:
+            return False
 
     def get_instances_list(self, session_id=None):
         """
@@ -178,10 +183,13 @@ class APIClient:
         :rtype: entities.Instance
         :return: An instance or `None` in case of error.
         """
-        resp = self._call('instances/%s' % inst_id, 'GET')
-        if resp is None:
+        try:
+            resp = self._call('instances/%s' % inst_id, 'GET')
+            if resp is None:
+                return None
+            return entities.Instance(**resp)
+        except APIClient.APIException:
             return None
-        return entities.Instance(**resp)
 
     #
     # Helpers
@@ -230,7 +238,7 @@ class APIClient:
         # Build the keyword arguments of the method
         args = {
             'headers': {
-                'User-Agent': 'iCE Client/%s' % ___version__
+                'User-Agent': 'iCE Client/%s' % ice.__version__
             }
         }
         if data is not None:
