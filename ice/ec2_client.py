@@ -6,6 +6,7 @@ from boto import exception as boto_exception
 
 
 class EC2Client(object):
+
     """EC2-like API client.
 
     :type config: ice.config.Configuration
@@ -125,7 +126,6 @@ class EC2Client(object):
                 'Failed to check on instances: {}'.format(str(err)))
             return False
 
-
     def destroy(self, instance_ids=None, cloud_id=None):
         """Wait for instances of current session to come up.
 
@@ -208,6 +208,10 @@ class EC2Client(object):
         if len(cloud_ids) == 0:
             return {}, None
 
+        # Credentials
+        aws_access_key_id = self.config.get_str('ec2', 'aws_access_key', '')
+        aws_secret_key = self.config.get_str('ec2', 'aws_secret_key', '')
+
         # Initialize connections
         clouds = {}
 
@@ -232,9 +236,14 @@ class EC2Client(object):
                 cloud['vpc_id'] = cloud_cfg.get('vpc_id', None)
                 cloud['ssh_key_name'] = cloud_cfg['ssh_key_name']
                 cloud['default_ami_id'] = cloud_cfg['default_ami_id']
-                ec2_url = cloud_cfg['region']
-                aws_access_key_id = cloud_cfg['aws_access_key']
-                aws_secret_key = cloud_cfg['aws_secret_key']
+
+                # URL
+                if 'region' in cloud_cfg:
+                    ec2_url = cloud_cfg['region']
+                elif 'url' in cloud_cfg:
+                    ec2_url = cloud_cfg['url']
+                else:
+                    ec2_url = cloud_id
 
                 # Initiate connection
                 cloud['conn'] = ec2.connect_to_region(
