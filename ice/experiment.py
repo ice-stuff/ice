@@ -6,14 +6,17 @@ import types
 from fabric import api as fabric_api
 
 import ice
+from ice import config
 
 
 class Experiment(object):
+
     """Experiment class.
 
     :type logger: logging.Logger
     :type api_client: ice.api_client.APIClient
     :type session: ice.entities.Session
+    :type config: ice.config.Configuration
     :type module: module
     :type mod_name: str
     :type mod_file_path : str
@@ -34,6 +37,7 @@ class Experiment(object):
         self.logger = logger
         self.api_client = api_client
         self.session = session
+        self.config = config.get_configuration()
 
         # Open experiment file
         if not os.path.isfile(file_path):
@@ -179,7 +183,11 @@ class Experiment(object):
             return
 
         # Execute
-        with fabric_api.settings(hosts=hosts.keys()):
+        ssh_id_file_path = os.path.expanduser(
+            self.config.get_str('shell', 'ssh_id_file_path', '~/.ssh/id_rsa')
+        )
+        with fabric_api.settings(hosts=hosts.keys(),
+                                 key_filename=ssh_id_file_path):
             # Prepare arguments
             if args is None:
                 args = [hosts]
