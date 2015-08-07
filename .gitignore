@@ -6,4 +6,5 @@ temp
 *.pyo
 config/local/*
 .idea
+.envrc
 
