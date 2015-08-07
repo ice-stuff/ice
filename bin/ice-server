@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 from ice import rest_api
 from ice import config
 from ice import logging
