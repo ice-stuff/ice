@@ -22,10 +22,7 @@ setuptools.setup(
         "IPython>=2.3.0",
         "requests>=1.2.0",
         "fabric>=1.10.0",
-        "boto>=2.34.0",
-        "nose>=1.3.0",
-        "unittest2>=1.1.0",
-        "mock>=1.3.0"
+        "boto>=2.34.0"
     ],
 
     # Configuration
