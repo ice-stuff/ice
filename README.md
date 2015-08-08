@@ -1,5 +1,7 @@
 # iCE: Interactive cloud experimentation tool
 
+[![Build Status](https://travis-ci.org/glestaris/iCE.svg?branch=wip-improve-coverage)](https://travis-ci.org/glestaris/iCE)
+
 iCE is a tool that aims to run experiments (interactively) on dynamic cloud
 resources. iCE takes no assumptions on how many are the available VMs (pool),
 where are these VMs located and what is going to run on them.
