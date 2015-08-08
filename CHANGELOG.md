@@ -2,7 +2,7 @@
 
 The entries bellow are in reverse chronological order.
 
-## v1.3.0 (x January 2015)
+## v1.3.0 (x August 2015)
 
 * SSH key can be specified in the configuration file.
 * Better support for multiple clouds.
@@ -11,6 +11,7 @@ The entries bellow are in reverse chronological order.
 * Fixes in task execution.
 * Fixes EC2 instances destruction bug.
 * Fixes session closing bug on deletion of linked instances.
+* Increases test coverage.
 
 ## v1.2.1 (27 December 2014)
 
