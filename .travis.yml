@@ -3,5 +3,5 @@ language: python
 python:
   - "2.7"
 install: "pip install -r dev-requirements.txt"
-script: nosetests
+script: ./helpers/run-tests
 

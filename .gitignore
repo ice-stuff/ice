@@ -7,4 +7,6 @@ temp
 config/local/*
 .idea
 .envrc
+.coverage
+coveragereport
 
