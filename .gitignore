@@ -1,12 +1,22 @@
+# Mac
 ._*
 .DS_STORE
 .DS_Store
-temp
+
+# Python byte-code
 *.pyc
 *.pyo
+
+# Local configuration
+temp
 config/local/*
-.idea
 .envrc
+               
+# IDE
+.idea
+.ropeproject
+
+# Coverage
 .coverage
 coveragereport
 
