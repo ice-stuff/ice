@@ -5,6 +5,31 @@ from boto import ec2
 from boto import exception as boto_exception
 
 
+class EC2CloudAuth(object):
+    """EC2 cloud authentication parameters
+
+    :type ec2_url: string
+    :type aws_access_key: string
+    :type aws_secret_key: string
+    """
+
+    def __init__(self, ec2_url, aws_access_key, aws_secret_key):
+        self.ec2_url = ec2_url
+        self.aws_access_key = aws_access_key
+        self.aws_secret_key = aws_secret_key
+        self._conn = None
+
+    def get_conn(self):
+        if self._conn is None:
+            self._conn = ec2.connect_to_region(
+                self.ec2_url,
+                aws_access_key_id=self.aws_access_key,
+                aws_secret_access_key=self.aws_secret_key
+            )
+
+        return self._conn
+
+
 class EC2Client(object):
 
     """EC2-like API client.
