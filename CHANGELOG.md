@@ -2,6 +2,11 @@
 
 The entries bellow are in reverse chronological order.
 
+## v2.0.0 (x September 2015)
+
+* Radical changes towards and unopinionated API.
+* Increases test coverage and necessary refactoring.
+
 ## v1.3.0 (26 January 2015)
 
 * SSH key can be specified in the configuration file.
