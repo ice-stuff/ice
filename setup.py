@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
     # Metadata
     name="iCE",
-    version="1.2.1",
+    version="1.3.0",
     author="George Lestaris",
     author_email="glestaris@gmail.com",
     description="Interactive cloud experiments and monitoring",
