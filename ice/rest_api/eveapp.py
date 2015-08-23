@@ -133,4 +133,6 @@ class APIServer(Eve):
     #
 
     def handle_get_my_ip(self):
+        if 'HTTP_X_FORWARDED_FOR' in request.environ:
+            return request.environ['HTTP_X_FORWARDED_FOR']
         return request.environ['REMOTE_ADDR']
