@@ -6,17 +6,12 @@ import types
 from fabric import api as fabric_api
 
 import ice
-from ice import config
 
 
 class Experiment(object):
-
     """Experiment class.
 
     :type logger: logging.Logger
-    :type api_client: ice.api_client.APIClient
-    :type session: ice.entities.Session
-    :type config: ice.config.Configuration
     :type module: module
     :type mod_name: str
     :type mod_file_path : str
@@ -25,19 +20,14 @@ class Experiment(object):
     class LoadError(Exception):
         pass
 
-    def __init__(self, logger, session, api_client, file_path):
+    def __init__(self, logger, file_path):
         """Constructs a new experiment.
 
         :param logging.Logger logger: The logger object.
-        :param ice.entities.Session session: The current session.
-        :param ice.api_client.APIClient api_client: iCE API client.
         :param str file_path: File path to the experiment file.
         :raises ice.experiment.Experiment.LoadError: If module fails to load.
         """
         self.logger = logger
-        self.api_client = api_client
-        self.session = session
-        self.config = config.get_configuration()
 
         # Open experiment file
         if not os.path.isfile(file_path):
@@ -72,25 +62,21 @@ class Experiment(object):
             sys.path.append(parent_dir_path)
 
         # Load the module
-        self.logger.debug(
-            'About to load module \'{0:s}\' from path \'{1:s}\''
-            .format(self.mod_name, parent_dir_path)
-        )
         try:
             # Load or re-load module
             if self.module is None:
+                self.logger.debug(
+                    'About to load module \'{0:s}\' from path \'{1:s}\''
+                    .format(self.mod_name, parent_dir_path)
+                )
                 self.module = __import__(self.mod_name)
             else:
-                self.module = reload(self.module)
-
-            # Check if module is loaded
-            if self.module is None:
-                raise Experiment.LoadError(
-                    'File {0:s} was not loaded properly!'.format(
-                        self.mod_file_path
-                    )
+                self.logger.debug(
+                    'About to reload module \'{0:s}\' from path \'{1:s}\''
+                    .format(self.mod_name, parent_dir_path)
                 )
-        except ImportError as err:  # error while parsing module
+                self.module = reload(self.module)
+        except Exception as err:  # error while parsing module
             raise Experiment.LoadError(
                 'File {0:s} caused error: {1:s}'.format(
                     self.mod_file_path, str(err)
@@ -148,26 +134,18 @@ class Experiment(object):
         tasks, runners = self.get_contents()
         return runners
 
-    def run(self, func_name=None, args=None):
+    def run(self, hosts, key_filename, func_name='run', args=None):
         """Runs a task of runner of the experiment.
 
+        :param list hosts: The list of host strings to run the task against.
+        :param str key_filename: Path to the SSH private key for accessing
+            the hosts.
         :param str func_name: The name of the function (task or runner) to run.
         :param list args: List of arguments to pass
         :rtype: mixed
         :return: The result of the task or runner or `False` if function is not
             found.
         """
-
-        # Fetch hosts
-        hosts = {}
-        instances = self.api_client.get_instances_list(self.session.id)
-        for inst in instances:
-            host_string = inst.get_host_string()
-            hosts[host_string] = inst
-
-        # Is task there?
-        if func_name is None:
-            func_name = 'run'
         try:
             func = getattr(self.module, func_name)
             if not isinstance(func, ice.Callable):
@@ -175,31 +153,22 @@ class Experiment(object):
                     'Attribute `%s.%s` is not a callable!'
                     % (self.mod_name, func_name)
                 )
-                return
+                return False
         except AttributeError:
             self.logger.error(
                 'Callable `%s.%s` is not found!' % (self.mod_name, func_name)
             )
-            return
+            return False
 
-        # Execute
-        ssh_id_file_path = os.path.expanduser(
-            self.config.get_str('shell', 'ssh_id_file_path', '~/.ssh/id_rsa')
-        )
-        with fabric_api.settings(hosts=hosts.keys(),
-                                 key_filename=ssh_id_file_path):
-            # Prepare arguments
+        with fabric_api.settings(hosts=hosts, key_filename=key_filename):
             if args is None:
                 args = [hosts]
             elif isinstance(args, types.ListType):
                 args = [hosts] + args
             else:
-                args = [hosts] + list(args)
+                args = [hosts] + [args]
 
-            # Run
             if isinstance(func, ice.Runner):
                 return func(*args)
             elif isinstance(func, ice.Task):
                 return fabric_api.execute(func, *args)
-            else:
-                return False
