@@ -4,7 +4,6 @@ from IPython.config import loader
 from IPython.terminal import embed
 
 import ice
-from ice import api
 from . import ext
 
 

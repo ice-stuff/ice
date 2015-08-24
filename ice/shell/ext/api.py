@@ -2,7 +2,6 @@
 import argparse
 
 from . import ShellExt
-from ice import api
 
 
 class APIShell(ShellExt):

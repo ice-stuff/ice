@@ -2,10 +2,9 @@
 from __future__ import absolute_import
 import os
 
-import ice
-from ice import api
-from ice import experiment
 from . import ShellExt
+
+from ice import experiment
 
 
 class FabricShell(ShellExt):
