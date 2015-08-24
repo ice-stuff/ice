@@ -103,7 +103,7 @@ class RegistryClient:
             if resp is None:
                 return False
             return True
-        except APIClient.APIException:
+        except RegistryClient.APIException:
             return False
 
     def get_sessions_list(self):
@@ -132,7 +132,7 @@ class RegistryClient:
             if resp is None:
                 return None
             return entities.Session(**resp)
-        except APIClient.APIException:
+        except RegistryClient.APIException:
             return None
 
     #
@@ -162,7 +162,7 @@ class RegistryClient:
         try:
             resp = self._call('instances/%s' % inst_id, 'DELETE')
             return (resp is not None)
-        except APIClient.APIException:
+        except RegistryClient.APIException:
             return False
 
     def get_instances_list(self, session_id=None):
@@ -201,7 +201,7 @@ class RegistryClient:
             if resp is None:
                 return None
             return entities.Instance(**resp)
-        except APIClient.APIException:
+        except RegistryClient.APIException:
             return None
 
     #
@@ -239,7 +239,7 @@ class RegistryClient:
         :rtype: dict|str
         :return: The response dictionary or the response string if `return_raw`
             is set.
-        :raises APIClient.APIException: In case of error.
+        :raises RegistryClient.APIException: In case of error.
         """
         # Find the method
         try:
@@ -264,9 +264,9 @@ class RegistryClient:
         try:
             resp = method(self._get_url(url_suffix), **args)
         except exceptions.RequestException as err:
-            raise APIClient.APIException(parent=err)
+            raise RegistryClient.APIException(parent=err)
         if resp.status_code / 100 != 2:
-            raise APIClient.APIException(
+            raise RegistryClient.APIException(
                 http_code=resp.status_code,
                 response=resp
             )
@@ -278,6 +278,6 @@ class RegistryClient:
             resp_parsed = resp.json()
         except ValueError as err:
             # Raise parse exception
-            raise APIClient.APIException(parent=err)
+            raise RegistryClient.APIException(parent=err)
 
         return resp_parsed

@@ -1,8 +1,8 @@
 from flask import request
 from eve import Eve
 
-from ice import config, logging
-from ice.rest_api import validation, domain
+# from ice import logging
+from . import validation, domain, config
 
 
 class APIServer(Eve):

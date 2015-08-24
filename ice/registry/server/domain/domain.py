@@ -1,7 +1,3 @@
-#
-# Abstract domain class
-#
-
 class Domain(object):
     #
     # Domain configuration
@@ -44,11 +40,3 @@ class Domain(object):
         :return: An EVE compliant schema definition.
         """
         return None
-
-
-#
-# Import domains
-#
-
-from .instances import InstancesDomain
-from .sessions import SessionsDomain
