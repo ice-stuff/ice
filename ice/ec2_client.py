@@ -3,7 +3,7 @@ from boto import ec2
 from boto import exception as boto_exception
 
 
-class EC2CloudAuth(object):
+class CfgEC2CloudAuth(object):
     """EC2 cloud authentication parameters"""
 
     def __init__(self, ec2_url, aws_access_key, aws_secret_key):
@@ -29,12 +29,11 @@ class EC2CloudAuth(object):
         return self._conn
 
 
-class EC2VMSpec(object):
+class CfgEC2VMSpec(object):
     """Specification of an EC2 VM"""
 
     def __init__(self, ami_id, ssh_key_name, flavor='t2.micro',
-                 user_data=None, security_group_id=None,
-                 security_group_name=None, subnet_id=None):
+                 user_data=None, security_group_id=None, subnet_id=None):
         """Create an EC2 VM specification
 
         :param str ami_id: AWS image (AMI) id.
@@ -44,8 +43,6 @@ class EC2VMSpec(object):
             Optional, default: None.
         :param str security_group_id: Id of AWS security group. Optional:
             default: None.
-        :param str security_group_name: Name of AWS security group.
-            Optional, default: None.
         :param str subnet_id: Id of the AWS subnet. Optional, default:
             None.
         """
@@ -54,7 +51,6 @@ class EC2VMSpec(object):
         self.flavor = flavor
         self.user_data = user_data
         self.security_group_id = security_group_id
-        self.security_group_name = security_group_name
         self.subnet_id = subnet_id
 
 
@@ -64,7 +60,7 @@ class EC2Client(object):
     def __init__(self, auth, logger):
         """Create an EC2 client for a given authentication.
 
-        :param ice.ec2_client.EC2CloudAuth auth: EC2 authentication parameters.
+        :param ice.ec2_client.CfgEC2CloudAuth auth: EC2 authentication parameters.
         :param logging.Logger logger: Logger.
         """
         self.auth = auth
@@ -74,7 +70,7 @@ class EC2Client(object):
         """Creates a list of VMs.
 
         :param int amt: The number of VMs to create.
-        :param ice.ec2_client.EC2VMSpec spec: The specification of the VMs to
+        :param ice.ec2_client.CfgEC2VMSpec spec: The specification of the VMs to
             launch.
         :return: The reservation or `None` in case of error.
         :rtype: boto.ec2.instance.Reservation
@@ -87,8 +83,6 @@ class EC2Client(object):
         }
         if spec.user_data is not None:
             boto_kwargs['user_data'] = spec.user_data
-        if spec.security_group_name is not None:
-            boto_kwargs['security_groups'] = [spec.security_group_name]
         if spec.security_group_id is not None:
             boto_kwargs['security_group_ids'] = [spec.security_group_id]
         if spec.subnet_id is not None:

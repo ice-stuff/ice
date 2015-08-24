@@ -7,7 +7,20 @@ import ice
 from ice import entities
 
 
-class APIClient:
+class CfgRegistryClient(object):
+    """Registry client configuration"""
+
+    def __init__(self, host, port):
+        """Creates a registry client configuration.
+
+        :param str host: The address of the registry server.
+        :param int port: The port of the registry server.
+        """
+        self.host = host
+        self.port = port
+
+
+class RegistryClient:
     VERSION = 'v1'
 
     class APIException(Exception):

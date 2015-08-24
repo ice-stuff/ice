@@ -6,13 +6,13 @@ from boto import ec2 as boto_ec2
 from boto import exception as boto_exception
 
 
-class TestEC2CloudAuth(unittest2.TestCase):
+class TestCfgEC2CloudAuth(unittest2.TestCase):
     def setUp(self):
         self.ec2_ctr = boto_ec2.connect_to_region
         boto_ec2.connect_to_region = mock.MagicMock()
         boto_ec2.connect_to_region.return_value = object()
 
-        self.cloud_auth = ec2_client.EC2CloudAuth(
+        self.cloud_auth = ec2_client.CfgEC2CloudAuth(
             'banana.aws.com',
             'IAmABanana',
             'IAmASecretBanana'
@@ -40,7 +40,7 @@ class TestEC2CloudAuth(unittest2.TestCase):
 
 class TestEC2Client(unittest2.TestCase):
     def setUp(self):
-        self.cloud_auth = ec2_client.EC2CloudAuth(
+        self.cloud_auth = ec2_client.CfgEC2CloudAuth(
             'banana.aws.com',
             'IAmABanana',
             'IAmASecretBanana'
@@ -140,13 +140,12 @@ class TestEC2ClientCreate(TestEC2Client):
         )
 
     def test_create(self):
-        spec = ec2_client.EC2VMSpec(
+        spec = ec2_client.CfgEC2VMSpec(
             'm-123456',
             'key-1234567',
             flavor='m3.large',
             user_data='echo 123',
             security_group_id='sg-123456',
-            security_group_name='sn-123456',
             subnet_id='sub-123456'
         )
         self.assertEqual(
@@ -163,14 +162,13 @@ class TestEC2ClientCreate(TestEC2Client):
                 min_count=10,
                 max_count=10,
                 security_group_ids=[spec.security_group_id],
-                security_groups=[spec.security_group_name],
                 subnet_id=spec.subnet_id,
                 user_data=spec.user_data
             )]
         )
 
     def test_create_with_defaults(self):
-        spec = ec2_client.EC2VMSpec('m-123456', 'key-123456')
+        spec = ec2_client.CfgEC2VMSpec('m-123456', 'key-123456')
         self.assertEqual(
             self.ec2_client.create(10, spec),
             self.fake_result
@@ -188,7 +186,7 @@ class TestEC2ClientCreate(TestEC2Client):
         )
 
     def test_error(self):
-        spec = ec2_client.EC2VMSpec('m-123456', 'key-123456')
+        spec = ec2_client.CfgEC2VMSpec('m-123456', 'key-123456')
         self.ec2_conn.run_instances.side_effect = \
             boto_exception.EC2ResponseError(500, 'banana')
 
