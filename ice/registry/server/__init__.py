@@ -1,2 +1,2 @@
-from .eveapp import APIServer
 from .config import CfgRegistryServer
+from .server import RegistryServer
