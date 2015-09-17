@@ -1,10 +1,12 @@
-import time
 import unittest2
 import logging
 import random
 import threading
+from ice import entities
 from ice.registry.client import RegistryClient
 from ice.registry.server import RegistryServer
+from ice.registry.server.domain.instances import InstancesDomain
+from ice.registry.server.domain.sessions import SessionsDomain
 from ice.registry.server.config import CfgRegistryServer
 from .fake_data_layer import FakeDataLayer
 
@@ -30,7 +32,12 @@ class ServerTestCase(unittest2.TestCase):
             mongo_db='ice'
         )
         logger = logging.getLogger('testing')
-        self.server = RegistryServer(cfg, logger, data=FakeDataLayer)
+        self.server = RegistryServer(
+            cfg,
+            [InstancesDomain(), SessionsDomain()],
+            logger,
+            data=FakeDataLayer
+        )
 
         self.thread = ServerThread(self.server)
         self.thread.daemon = True
@@ -42,3 +49,4 @@ class ServerTestCase(unittest2.TestCase):
 class TestMyIP(ServerTestCase):
     def test(self):
         self.assertEqual(self.client.get_my_ip(), '127.0.0.1')
+

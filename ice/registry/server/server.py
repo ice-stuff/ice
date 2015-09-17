@@ -7,27 +7,25 @@ from . import validation, domain, config
 
 
 class RegistryServer(Eve):
-    #
-    # CHANGE ME: Extend this list to add domains
-    #
-
-    _DOMAINS = [domain.InstancesDomain, domain.SessionsDomain]
-
-    def __init__(self, cfg, logger, *args, **kwargs):
+    def __init__(self, cfg, domains, logger, *args, **kwargs):
         """Create a registry server instance.
 
         :param ice.registry.server.config.CfgRegistryServer cfg: The
             cfguration object of the server.
+        :param list domains: List of `ice.registry.server.domain.Domain`
+            instances.
         :param logging.Logger logger: The logger to use for logging.
         """
         self.cfg = cfg
 
-        # Eve settings
-        self.apiLogger = logger
-        self.settings = {
+        # Eve
+        settings = {
             'API_VERSION': 'v1',    # Version of the API
             'HATEOAS': False,       # Disable HATEOAS
             'IF_MATCH': False,      # Disable If-Match headers
+
+            # Setup logging
+            'LOGGER_NAME': logger.name,
 
             # Mongo settings
             'MONGO_HOST': cfg.mongo_config['host'],
@@ -36,18 +34,13 @@ class RegistryServer(Eve):
             'MONGO_PASSWORD': cfg.mongo_config['password'],
             'MONGO_DBNAME': cfg.mongo_config['db_name']
         }
-        self.settings['DOMAIN'] = {}
-        for dom in self._DOMAINS:
-            self._apply_domain_settings(dom)
-
+        settings['DOMAIN'] = {}
+        for dom in domains:
+            settings['DOMAIN'][dom.get_endpoint()] = dom.get_config()
         super(RegistryServer, self).__init__(
-            settings=self.settings, validator=validation.MyValidator,
+            settings=settings, validator=validation.MyValidator,
             *args, **kwargs
         )
-
-        # Domain hooks
-        for dom in self._DOMAINS:
-            self._set_domain_hooks(dom)
 
         # Other rules
         self.add_url_rule(
@@ -61,34 +54,6 @@ class RegistryServer(Eve):
             port=self.cfg.port,
             debug=self.cfg.debug
         )
-
-    #
-    # Setup: domains
-    #
-
-    def _apply_domain_settings(self, domain_cls):
-        # Setup the domain settings
-        self.settings['DOMAIN'][domain_cls.ENDPOINT] = domain_cls.get_config()
-
-    def _set_domain_hooks(self, domain_cls):
-        # Instantiate the domain
-        dom = domain_cls()
-
-        # Setup the hooks
-        for entry, value in domain_cls.__dict__.items():
-            if entry.startswith('on_'):
-                self.apiLogger.debug(
-                    'Registering hook \'%s\' for resource \'%s\''
-                    % (entry, domain_cls.ENDPOINT)
-                )
-                setattr(
-                    self, entry + '_' +
-                    domain_cls.ENDPOINT, getattr(dom, entry)
-                )
-
-    #
-    # /my_ip route
-    #
 
     def handle_get_my_ip(self):
         return request.environ['REMOTE_ADDR']

@@ -2,22 +2,12 @@ from .domain import Domain
 
 
 class InstancesDomain(Domain):
-    #
     # Domain configuration
-    #
+    DEFAULT_ENDPOINT = 'instances'
+    DEFAULT_ITEM_TITLE = 'instance'
+    DEFAULT_ITEM_METHODS = ['GET', 'DELETE']
 
-    ENDPOINT = 'instances'
-    _ITEM_TITLE = 'instance'
-    _ITEM_METHODS = ['GET', 'DELETE']
-
-    # @classmethod
-    # def get_config(cls):
-    #     cfg = super(InstancesDomain, cls).get_config()
-    #     cfg['url'] = r'sessions/<regex("[a-f0-9]{24}"):session_id>/instances'
-    #     return cfg
-
-    @classmethod
-    def _get_schema(cls):
+    def get_schema(self):
         return {
             # Session
             'session_id': {
