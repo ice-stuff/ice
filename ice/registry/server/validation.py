@@ -14,8 +14,6 @@ class MyValidator(mongo.Validator):
     def _validate_type_ip(self, field, value):
         """ Enables validation for `ip` schema attribute.
 
-        :param unique: Boolean, whether the field value should be
-                       unique or not.
         :param field: field name.
         :param value: field value.
         """
@@ -41,8 +39,6 @@ class MyValidator(mongo.Validator):
     def _validate_type_url(self, field, value):
         """ Enables validation for `url` schema attribute.
 
-        :param unique: Boolean, whether the field value should be
-                       unique or not.
         :param field: field name.
         :param value: field value.
         """
