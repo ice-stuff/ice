@@ -2,24 +2,61 @@
 import IPython
 from IPython.config import loader
 from IPython.terminal import embed
-
 import ice
-from . import ext
+from ice import entities
 
 
 class Shell(object):
+    """IPython shell wrapper class."""
 
-    """IPython shell wrapper class.
+    class Error(Exception):
+        pass
 
-    :type config: ice.config.Configuration
-    :type logger: logging.Logger
-    ;type is_session_shared: bool
-    """
+    class Command(object):
+        def __init__(self, name, cb, parser=None, usage=None):
+            self.name = name
+            self.cb = cb
+            self.parser = parser
+            self.usage = usage
 
-    def __init__(self, config, logger):
-        # Set dependencies
-        self.config = config
+        def get_description(self):
+            return self.cb.__doc__
+
+        def get_usage(self):
+            if self.parser is not None:
+                return self.parser.format_help()
+            elif self.usage is not None:
+                return 'Usage: %s %s' % (self.name, self.usage)
+            else:
+                return self.get_description()
+
+    class CommandCallbackWrapper(object):
+        def __init__(self, command):
+            self.command = command
+
+        def __call__(self, args_str):
+            cmd = self.command
+            if cmd.parser is not None:
+                args = cmd.parser.parse_args(args_str.split())
+                return cmd.cb(args)
+            else:
+                args = args_str.split()
+                return cmd.cb(*args)
+
+    def __init__(self, client, logger, extensions=[], debug=False):
+        """Create a new shell object.
+
+        :param ice.registry.client.RegistryClient registry: The registry
+            client.
+        :param logging.Logger logger:
+        :param list extensions: A list of `ice.shell.ext.ShellExt` instances.
+        :param debug bool: Set to true if the shell is in debug mode.
+        """
+        self.client = client
         self.logger = logger
+        self.extensions = extensions
+        self.debug = debug
+        self.session = None
 
         # Default banner messages
         self._banner_messages = [
@@ -30,49 +67,19 @@ class Shell(object):
         ]
 
         # Magic functions
-        self._magic_functions = []
-        self._magic_functions_dict = {}
-        self.add_magic_function('h', self.run_h)
-        self.add_magic_function('version', self.run_version)
-        if self.config.get_bool('shell', 'debug', False):
-            self.add_magic_function('sess_cd', self.run_sess_cd)
+        self._commands = []
+        self._commands_dict = {}
+        self.add_command('h', self.run_h)
+        self.add_command('version', self.run_version)
+        if self.debug:
+            self.add_command('sess_cd', self.run_sess_cd)
 
-        # Add shells extensions
-        self._extensions = []
-        self._extensions.append(ext.FabricShell(self))
-        self._extensions.append(ext.APIShell(self))
-        self._extensions.append(ext.EC2Shell(self))
+    def get_session(self):
+        """Return the current session.
 
-    #
-    # Setters / getters
-    #
-
-    def get_config(self):
-        """Gets the configuration object.
-
-        :rtype: ice.config.Configuration
-        :return: The configuration object.
+        :rtype: ice.entities.Session
         """
-        return self.config
-
-    def get_logger(self):
-        """Gets the iCE logger.
-
-        :rtype: logging.Logger
-        :return: The iCE logger.
-        """
-        return self.logger
-
-    #
-    # Error
-    #
-
-    class Error(Exception):
-        pass
-
-    #
-    # Message handling
-    #
+        return self.session
 
     def add_banner_message(self, msg):
         """Adds a message in the shell header.
@@ -81,46 +88,20 @@ class Shell(object):
         """
         self._banner_messages.append(msg)
 
-    #
-    # Magic function handling
-    #
+    def add_command(self, name, callback, usage=None, parser=None):
+        """Adds a command to the shell.
 
-    def add_magic_function(self, alias, callback, usage=None):
-        """Adds a magic function to the shell.
-
-        :param str alias: The function alias.
+        :param str name: The function name.
         :param function callback: The callback function.
         :param str usage: The usage string.
         """
-        mf = {
-            'alias': alias,
-            'cb': callback
-        }
-        if usage is not None:
-            mf['usage'] = usage
-        self._magic_functions.append(mf)
-        self._magic_functions_dict[alias] = mf
-
-    def add_magic_function_v2(self, alias, callback, parser=None):
-        """Adds a magic function to the shell.
-
-        :param str alias: Alias of the command
-        :param function callback: The callback function.
-        :param argparse.ArgumentParser parser: The argument parser.
-        """
-        mf = {
-            'alias': alias,
-            'cb': callback,
-            'parser': parser
-        }
+        cmd = self.Command(name, callback)
         if parser is not None:
-            mf['parser'] = parser
-        self._magic_functions.append(mf)
-        self._magic_functions_dict[alias] = mf
-
-    #
-    # Start shell
-    #
+            cmd.parser = parser
+        if usage is not None:
+            cmd.usage = usage
+        self._commands.append(cmd)
+        self._commands_dict[name] = cmd
 
     def start(self, scripts_to_run=None):
         """Starts the shell.
@@ -135,10 +116,11 @@ class Shell(object):
             )
 
         # Make session
-        sess = api.session.start()
-        if sess is None:
-            raise Shell.Error('Failed to start session!')
-        self.logger.debug('Session id = {0.id:s}'.format(sess))
+        self.session = entities.Session(
+            client_ip_addr=self.client.get_my_ip()
+        )
+        self.client.submit_session(self.session)
+        self.logger.debug('Session id = {0.id:s}'.format(self.session))
         self.is_session_shared = False
 
         # Shell configuration
@@ -148,7 +130,11 @@ class Shell(object):
         pc.in2_template = '   '
         pc.out_template = ''
 
-        # Make shell
+        # Start extensions
+        for ext in self.extensions:
+            ext.start(self)
+
+        # Run
         shell = embed.InteractiveShellEmbed(
             config=shell_cfg,
             banner1='* ' + str('*' * 68) + '\n'
@@ -157,47 +143,36 @@ class Shell(object):
             + '* ' + str('*' * 68),
             exit_msg='See ya...'
         )
-        for entry in self._magic_functions:
-            shell.define_magic(entry['alias'], entry['cb'])
-
-        # Start extensions
-        for ext in self._extensions:
-            ext.start()
-
-        # Run
+        for entry in self._commands:
+            ret = shell.register_magic_function(
+                self.CommandCallbackWrapper(entry),
+                magic_name=entry.name
+            )
         shell()
 
         # Stop extensions
-        for ext in self._extensions:
+        for ext in self.extensions:
             ext.stop()
 
         # Clean session
         if not self.is_session_shared:
-            api.session.close()
+            self.client.delete_session(self.session)
         else:
             self.logger.info(
                 'Current session will not be closed, since it is shared!'
             )
 
-    #
-    # Help command
-    #
-
     def run_version(self, magics, args_raw):
         """Prints the version of iCE."""
         print 'iCE version v{0:s}'.format(ice.__version__)
 
-    def run_h(self, magics, definition):
+    def run_h(self, definition=''):
         """Shows list of commands."""
         # Definition is defined :)
         if definition != '':
-            if definition in self._magic_functions_dict:
-                entry = self._magic_functions_dict[definition]
-                print entry['cb'].__doc__
-                if 'parser' in entry:
-                    print entry['parser'].format_help()
-                elif 'usage' in entry:
-                    print 'Usage: %s %s' % (definition, entry['usage'])
+            if definition in self._commands_dict:
+                entry = self._commands_dict[definition]
+                print entry.get_usage()
             else:
                 help(str(definition))
             return
@@ -206,18 +181,18 @@ class Shell(object):
         print 'All commands explained:'
         print '\n'.join(
             [
-                ' * %s: %s' % (entry['alias'], entry['cb'].__doc__)
-                for entry in self._magic_functions
+                ' * %s: %s' % (entry.name, entry.get_description())
+                for entry in self._commands
             ]
         )
 
-    def run_sess_cd(self, magics, session_id):
+    def run_sess_cd(self, session_id):
         """Changes session."""
         # Load session
-        sess = api.session.load_session(session_id)
-        if sess is None:
+        self.session = self.client.get_session(session_id)
+        if self.session is None:
             raise Shell.Error('Failed to load session!')
-        self.logger.debug('New session id = {0.id:s}'.format(sess))
+        self.logger.debug('New session id = {0.id:s}'.format(self.session))
 
         # Set session as shared, to avoid closing it.
         self.is_session_shared = True

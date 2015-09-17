@@ -1,44 +1,52 @@
 """Wrapper class for EC2-like cloud related shell commands."""
 import argparse
-
+from ice import ec2_client
 from . import ShellExt
 
 
 class EC2Shell(ShellExt):
-
     """Wrapper class for EC2-like cloud related shell commands."""
 
-    def __init__(self, shell):
+    def __init__(self, logger, debug=False):
         """
-        :param ice.shell.Shell shell: The shell.
+        :param logging.Logger logger:
+        :param bool debug: Set to True for debug behaviour.
         """
-        super(EC2Shell, self).__init__(shell)
-
-        # Instances
         self._instances = {}
+        self._ec2_clients = {}
+        super(EC2Shell, self).__init__(logger, debug)
 
-        # Register self
-        shell.add_magic_function_v2(
-            'ec2_ls', self.run_ls, self.get_ls_parser()
-        )
-        shell.add_magic_function_v2(
-            'ec2_create', self.run_create, self.get_create_parser()
-        )
-        shell.add_magic_function_v2(
-            'ec2_wait', self.run_wait, self.get_wait_parser()
-        )
-        shell.add_magic_function_v2(
-            'ec2_destroy', self.run_destroy, self.get_destroy_parser()
-        )
+    def start(self, shell):
+        """Starts the shell extension.
 
-    #
-    # Start / stop
-    #
+        It initializes the extension object and calls the
+        shell.add_command to setup the shell hooks.
+
+        :param ice.shell.Shell shell:
+        """
+        super(EC2Shell, self).start(shell)
+
+        shell.add_command(
+            'ec2_ls', self.run_ls,
+            parser=self.get_ls_parser()
+        )
+        shell.add_command(
+            'ec2_create', self.run_create,
+            parser=self.get_create_parser()
+        )
+        # shell.add_command(
+        #     'ec2_wait', self.run_wait,
+        #     parser=self.get_wait_parser()
+        # )
+        shell.add_command(
+            'ec2_destroy', self.run_destroy,
+            parser=self.get_destroy_parser()
+        )
 
     def stop(self):
+        """Stops the extension. It cleans up the state of the extension."""
         super(EC2Shell, self).stop()
 
-        # Build dictionary of lists of instance ids
         clouds = {}
         for inst_id, entry in self._instances.items():
             key = entry['cloud_id']
@@ -46,13 +54,28 @@ class EC2Shell(ShellExt):
                 clouds[key] = []
             clouds[key].append(inst_id)
 
-        # Call APIs
         for cloud_id, instance_ids in clouds.items():
-            api.ec2.destroy(instance_ids, cloud_id)
+            self._get_client(cloud_id).destroy(instance_ids)
 
-    #
-    # Commands
-    #
+    def register_client(self, cloud_id, ec2_client):
+        """Register an EC2 client.
+
+        :param string cloud_id: The cloud key of the client.
+        :param ice.ec2_client.EC2Client ec2_client:
+        """
+        self._ec2_clients[cloud_id] = ec2_client
+
+    def _get_client(self, cloud_id=None):
+        if cloud_id is None:
+            items = self._ec2_clients.items()
+            if len(items) == 0:
+                return None
+            return items[0][1]
+
+        if cloud_id not in self._ec2_clients:
+            return None
+
+        return self._ec2_clients[cloud_id]
 
     def get_ls_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_ls', add_help=False)
@@ -65,14 +88,10 @@ class EC2Shell(ShellExt):
         )
         return parser
 
-    def run_ls(self, magics, args_raw):
+    def run_ls(self, args):
         """Lists EC2 instances."""
-        args = self.get_ls_parser().parse_args(args_raw.split())
+        reservations = self._get_client(args.cloud_id).get_list()
 
-        # Call API to get the reservations
-        reservations = api.ec2.get_list(args.cloud_id)
-
-        # Print
         self._print_reservations(reservations, args.show_reservations)
 
     def get_create_parser(self):
@@ -87,25 +106,21 @@ class EC2Shell(ShellExt):
         )
         return parser
 
-    def run_create(self, magics, args_raw):
+    def run_create(self, args):
         """Creates new EC2 instances."""
-        args = self.get_create_parser().parse_args(args_raw.split())
-
-        # Launch VMs
-        reservation = api.ec2.create(args.amt, args.ami_id, args.flavor,
-                                     args.cloud_id)
+        reservation = self._get_client(args.cloud_id).create(
+            args.amt, args.ami_id, args.flavor
+        )
         if reservation is None:
             self.logger.error('Failed to run instances!')
             return
 
-        # Store VMs
         for inst in reservation.instances:
             self._instances[inst.id] = {
                 'inst': inst,
                 'cloud_id': args.cloud_id
             }
 
-        # Print
         self._print_reservations([reservation])
 
     def get_wait_parser(self):
@@ -118,18 +133,14 @@ class EC2Shell(ShellExt):
         )
         return parser
 
-    def run_wait(self, magics, args_raw):
-        """Wait for 'pending' instances."""
-        args = self.get_wait_parser().parse_args(args_raw.split())
+    # def run_wait(self, args):
+    #     """Wait for 'pending' instances."""
+    #     res = api.ec2.wait(args.timeout, args.cloud_id)
 
-        # Run the API-call
-        res = api.ec2.wait(args.timeout, args.cloud_id)
-
-        # Print
-        if res:
-            self.logger.info('No instances in pending state now!')
-        else:
-            self.logger.error('Timeout!')
+    #     if res:
+    #         self.logger.info('No instances in pending state now!')
+    #     else:
+    #         self.logger.error('Timeout!')
 
     def get_destroy_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_parser', add_help=False)
@@ -141,19 +152,14 @@ class EC2Shell(ShellExt):
         )
         return parser
 
-    def run_destroy(self, magics, args_raw):
+    def run_destroy(self, args):
         """Destroys existing EC2 instances."""
-        args = self.get_destroy_parser().parse_args(args_raw.split())
+        instances = self._get_client(args.cloud_id).destroy(args.instance_ids)
 
-        # Destroy VMs
-        instances = api.ec2.destroy(args.instance_ids, args.cloud_id)
-
-        # De-register them from internal structure
         for inst in instances:
             if inst.id in self._instances:
                 del self._instances[inst.id]
 
-        # Print
         self._print_instances(instances)
 
     #

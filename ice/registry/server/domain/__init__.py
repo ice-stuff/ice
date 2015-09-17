@@ -1,2 +1,3 @@
-from .instances import InstancesDomain
-from .sessions import SessionsDomain
+"""Registry server domains."""
+from . import instances
+from . import sessions

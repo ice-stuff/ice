@@ -4,23 +4,29 @@
 class ShellExt(object):
     """iCE Shell extension class."""
 
-    def __init__(self, shell):
+    def __init__(self, logger, debug=False):
         """
-        :param ice.shell.Shell shell: The shell.
+        :param logging.Logger logger:
+        :param bool debug: Set to True for debug behaviour.
+        """
+        self.logger = logger
+        self.debug = debug
+
+    def start(self, shell):
+        """Starts the shell extension.
+
+        It initializes the extension object and calls the
+        shell.add_magic_function to setup the shell hooks.
+
+        :param ice.shell.Shell shell:
         """
         self.shell = shell
 
-        # Set dependencies
-        self.config = shell.get_config()
-        self.logger = shell.get_logger()
-
-    def start(self):
-        pass
-
     def stop(self):
+        """Stops the extension. It cleans up the state of the extension."""
         pass
 
-# Shell extensions
-from .api import APIShell
-from .ec2 import EC2Shell
-from .fabric import FabricShell
+# Import extensions
+from . import registry
+from . import ec2
+from . import experiment

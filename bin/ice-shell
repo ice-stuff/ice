@@ -1,24 +1,63 @@
 #!/usr/bin/env python
+import os
 import sys
+import ConfigParser
+import logging
+import ice
+from ice import config
+from ice import shell
+from ice import ec2_client
+from ice.registry import client
+from ice.shell import ext
 
-from ice import shell, config, logging
+
+def _get_config_factory():
+    cfg = ConfigParser.SafeConfigParser()
+    for dir_path in ice.CONFIG_DIRS:
+        file_path = os.path.join(dir_path, "ice.ini")
+        if os.path.isfile(file_path):
+            cfg.read(file_path)
+    return config.ConfigFactory(cfg)
 
 
-def main():
-    # Is verbose?
-    _cfg = config.get_configuration()
-    if _cfg.get_bool('shell', 'debug', False):
-        # Set root logger to debug
-        root_logger = logging.get_logger('ice')
-        root_logger.setLevel(logging.DEBUG)
-        root_logger.debug('Setting log level to DEBUG')
-
-    # Shell
-    s = shell.Shell(_cfg, logging.get_logger('ice.shell'))
-
-    # Start the shell
-    s.start(sys.argv[1:])
+def _get_logger():
+    for dir_path in ice.CONFIG_DIRS:
+        file_path = os.path.join(dir_path, "logging.ini")
+        if os.path.isfile(file_path):
+            logging.config.fileConfig(file_path)
+    return logging.getLogger('ice.shell')
 
 
 if __name__ == '__main__':
-    main()
+    cfg_factory = _get_config_factory()
+    debug = True
+
+    reg_cfg = cfg_factory.get_registry_client()
+    registry = client.RegistryClient(reg_cfg.host, reg_cfg.port)
+
+    logger = _get_logger()
+    if debug:
+        logger.setLevel(logging.DEBUG)
+
+    shell.Shell(
+        registry,
+        logger,
+        extensions=[
+            ext.registry.RegistryShell(
+                registry,
+                logger,
+                debug=debug
+            ),
+            ext.experiment.ExperimentShell(
+                registry,
+                logger,
+                debug=debug
+            ),
+            ext.ec2.EC2Shell(
+                cfg_factory,
+                logger,
+                debug=debug
+            )
+        ],
+        debug=debug
+    ).start(sys.argv[1:])

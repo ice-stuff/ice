@@ -2,9 +2,7 @@
 import os
 import sys
 import types
-
 from fabric import api as fabric_api
-
 import ice
 
 

@@ -1,54 +1,53 @@
 """Wrapper class for Fabric-related shell commands."""
-from __future__ import absolute_import
 import os
-
+from ice import experiment
 from . import ShellExt
 
-from ice import experiment
 
-
-class FabricShell(ShellExt):
-
+class ExperimentShell(ShellExt):
     """Wrapper class for Fabric-related shell commands."""
 
-    def __init__(self, shell):
+    def __init__(self, registry, logger, debug=False):
         """
-        :param ice.shell.Shell shell: The shell.
+        :param ice.registry.client.RegistryClient registry:
+        :param logging.Logger logger:
+        :param bool debug: Set to True for debug behaviour.
         """
-        super(FabricShell, self).__init__(shell)
-
-        # Experiments
+        self.registry = registry
         self._experiments = {}
+        super(ExperimentShell, self).__init__(logger, debug)
 
-        # Register self
-        shell.add_magic_function(
+    def start(self, shell):
+        """Starts the shell extension.
+
+        It initializes the extension object and calls the
+        shell.add_command to setup the shell hooks.
+
+        :param ice.shell.Shell shell:
+        """
+        super(ExperimentShell, self).start(shell)
+
+        shell.add_command(
             'exp_load', self.load_exp, usage='<Experiment file path>'
         )
-        shell.add_magic_function(
+        shell.add_command(
             'exp_ls', self.ls_exp, usage='<Experiment name>'
         )
-        shell.add_magic_function(
-            'exp_run',
-            self.run,
+        shell.add_command(
+            'exp_run', self.run_exp,
             usage='<Experiment name> <Task or runner name> [<Arguments> ...]'
         )
 
-    #
-    # Commands
-    #
-
-    def load_exp(self, magics, args_raw):
+    def load_exp(self, *args):
         """Loads an experiment to iCE."""
-        args = args_raw.split()
+        args = list(args)
 
-        # Check path
         try:
             path = args.pop(0)
         except IndexError:
             self.logger.error('Please specify experiment path!')
             return
 
-        # Load module
         experiment_name = os.path.basename(path).replace(
             '.py', ''
         )
@@ -63,21 +62,21 @@ class FabricShell(ShellExt):
                 )
             return
         else:
-            exp = api.experiment.load(path)
-            if exp is None:
-                self.logger.error('Module `%s` failed to be loaded!' % path)
+            try:
+                exp = experiment.Experiment(self.logger, path)
+            except experiment.Experiment.LoadError as err:
+                self.logger.error(
+                    'Loading module `%s`: %s' % (path, err)
+                )
                 return
             self._experiments[experiment_name] = exp
         self.logger.info('Module `%s` is successfully loaded!' % path)
 
-    def ls_exp(self, magis, args_raw):
-        """Lists contents of loaded experiment."""
-        args = args_raw.split()
+    def ls_exp(self, *args):
+        args = list(args)
 
-        # Parse and check arguments
         try:
             experiment_name = args.pop(0)
-            # Is experiment loaded?
             if experiment_name not in self._experiments:
                 self.logger.error(
                     'Experiment `%s` is not loaded!' % experiment_name
@@ -88,7 +87,6 @@ class FabricShell(ShellExt):
             self.logger.error('Please specify experiment name!')
             return
 
-        # List tasks and runners
         tasks, runners = exp.get_contents()
         print '> Module `%s`:' % experiment_name
         if len(runners) > 0:
@@ -98,11 +96,10 @@ class FabricShell(ShellExt):
             print 'Tasks:'
             print '\n'.join(tasks)
 
-    def run(self, magics, args_raw):
+    def run_exp(self, *args):
         """Runs a task or an experiment."""
-        args = args_raw.split()
+        args = list(args)
 
-        # Parse and check experiment name
         try:
             experiment_name = args.pop(0)
             # Is experiment loaded?
@@ -116,13 +113,12 @@ class FabricShell(ShellExt):
             self.logger.error('Please specify experiment name!')
             return
 
-        # Parse and task name
         try:
             func_name = args.pop(0)
         except IndexError:
             func_name = 'run'  # default
 
-        # Run the task
+        # TODO add hosts and key_filename
         res = exp.run(func_name, args=args)
         if res is False:
             self.logger.error(
