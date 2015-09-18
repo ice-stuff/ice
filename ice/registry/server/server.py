@@ -20,7 +20,7 @@ class RegistryServer(Eve):
 
         # Eve
         settings = {
-            'API_VERSION': 'v1',    # Version of the API
+            'API_VERSION': 'v2',    # Version of the API
             'HATEOAS': False,       # Disable HATEOAS
             'IF_MATCH': False,      # Disable If-Match headers
 
@@ -44,7 +44,7 @@ class RegistryServer(Eve):
 
         # Other rules
         self.add_url_rule(
-            '/v1/my_ip', 'handle_get_my_ip', self.handle_get_my_ip
+            '/v2/my_ip', 'handle_get_my_ip', self.handle_get_my_ip
         )
 
     def run(self):

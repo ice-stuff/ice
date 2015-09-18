@@ -21,7 +21,7 @@ class CfgRegistryClient(object):
 
 
 class RegistryClient:
-    VERSION = 'v1'
+    VERSION = 'v2'
 
     class APIException(Exception):
 
