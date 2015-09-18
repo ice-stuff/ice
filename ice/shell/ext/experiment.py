@@ -7,13 +7,15 @@ from . import ShellExt
 class ExperimentShell(ShellExt):
     """Wrapper class for Fabric-related shell commands."""
 
-    def __init__(self, registry, logger, debug=False):
+    def __init__(self, registry, ssh_id_file_path, logger, debug=False):
         """
         :param ice.registry.client.RegistryClient registry:
+        :param string ssh_id_file_path:
         :param logging.Logger logger:
         :param bool debug: Set to True for debug behaviour.
         """
         self.registry = registry
+        self.ssh_id_file_path = ssh_id_file_path
         self._experiments = {}
         super(ExperimentShell, self).__init__(logger, debug)
 
@@ -118,8 +120,14 @@ class ExperimentShell(ShellExt):
         except IndexError:
             func_name = 'run'  # default
 
-        # TODO add hosts and key_filename
-        res = exp.run(func_name, args=args)
+        hosts = [
+            i.get_host_string()
+            for i in self.registry.get_instances_list(
+                self.shell.get_session()
+            )
+        ]
+
+        res = exp.run(hosts, self.ssh_id_file_path, func_name, args=args)
         if res is False:
             self.logger.error(
                 'Task `%s.%s` failed!' % (experiment_name, func_name)

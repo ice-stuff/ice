@@ -30,34 +30,39 @@ def _get_logger():
 
 if __name__ == '__main__':
     cfg_factory = _get_config_factory()
-    debug = True
 
     reg_cfg = cfg_factory.get_registry_client()
     registry = client.RegistryClient(reg_cfg.host, reg_cfg.port)
 
+    shell_cfg = cfg_factory.get_shell()
+
     logger = _get_logger()
-    if debug:
+    if shell_cfg.debug:
         logger.setLevel(logging.DEBUG)
 
     shell.Shell(
+        shell_cfg,
         registry,
         logger,
         extensions=[
             ext.registry.RegistryShell(
                 registry,
                 logger,
-                debug=debug
+                debug=shell_cfg.debug
             ),
             ext.experiment.ExperimentShell(
                 registry,
+                shell_cfg.ssh_id_file_path,
                 logger,
-                debug=debug
+                debug=shell_cfg.debug
             ),
             ext.ec2.EC2Shell(
                 cfg_factory,
+                registry,
+                shell_cfg.public_reg_host,
+                shell_cfg.public_reg_port,
                 logger,
-                debug=debug
+                debug=shell_cfg.debug
             )
-        ],
-        debug=debug
+        ]
     ).start(sys.argv[1:])

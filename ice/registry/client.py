@@ -1,8 +1,7 @@
 import json
-
+import base64
 import requests
 from requests import exceptions
-
 import ice
 from ice import entities
 
@@ -79,27 +78,22 @@ class RegistryClient:
         session.id = resp['_id']
         return session.id
 
-    def delete_session(self, session_id):
+    def delete_session(self, session):
         """Deletes a specific session.
 
-        :param str session_id: The session id.
+        :param ice.entities.Session session: The session.
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
-        # Delete linked instances
-        #   TODO: I cannot figure out why commented-out code does not work. It
-        #       deletes all the instances (of all the sessions)!
-        instances = self.get_instances_list(session_id)
+        if session is None:
+            return False
+
+        instances = self.get_instances_list(session)
         for inst in instances:
             self.delete_instance(inst)
-        # params = {
-        #     'where': '{"session_id": "%s"}' % session_id
-        # }
-        # resp = self._call('instances', 'DELETE', params=params)
 
-        # Delete session
         try:
-            resp = self._call('sessions/%s' % session_id, 'DELETE')
+            resp = self._call('sessions/%s' % session.id, 'DELETE')
             if resp is None:
                 return False
             return True
@@ -165,19 +159,19 @@ class RegistryClient:
         except RegistryClient.APIException:
             return False
 
-    def get_instances_list(self, session_id=None):
+    def get_instances_list(self, session=None):
         """
         Returns a list of instances.
 
-        :param str session_id: The session id.
+        :param ice.entities.Session session: The session.
         :rtype: list of [entities.Instance]
         :return: List of `entities.Instance` instances.
         """
         # Make calls
         params = None
-        if session_id is not None:
+        if session is not None:
             params = {
-                'where': '{"session_id": "%s"}' % session_id
+                'where': '{"session_id": "%s"}' % session.id
             }
         resp = self._call('instances', 'GET', params=params)
 
@@ -203,6 +197,28 @@ class RegistryClient:
             return entities.Instance(**resp)
         except RegistryClient.APIException:
             return None
+
+    #
+    # User data for ice-agent
+    #
+
+    # TODO: consider splitting this method out of RegistryClient class.
+    def compile_user_data(self, sess, public_reg_host, public_reg_port):
+        """Compiles the user-data string for new VMs.
+
+        :param ice.entities.Session sess: Active iCE session.
+        :param string public_reg_host:
+        :param string public_reg_port:
+        :rtype: str
+        :return: Base64 encoded user data.
+        """
+        user_data = """#!/bin/bash
+curl https://raw.githubusercontent.com/glestaris/iCE/v2/agent/ice-register-self.py -O ./ice-register-self.py
+chmod +x ./ice-register-self.py
+./ice-register-self.py -a http://{0:s}:{1:d} -s {2:s}
+""".format(public_reg_host, public_reg_port, sess.id)
+
+        return base64.b64encode(user_data)
 
     #
     # Helpers

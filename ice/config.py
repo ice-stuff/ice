@@ -1,7 +1,7 @@
 """Configuration object factory"""
 import ConfigParser
-
 from ice import ec2_client
+from ice import shell
 from ice.registry import client
 from ice.registry import server
 
@@ -113,6 +113,22 @@ class ConfigFactory(object):
             mongo_pass=self.cfg.get_str('mongodb', 'password',
                                         default_value=''),
             mongo_db=self.cfg.get_str('mongodb', 'db_name', required=True)
+        )
+
+    def get_shell(self):
+        """Creates a shell cofiguration object.
+
+        :rtype: `ice.shell.ShellCfg`
+        :return: The shell configuration object.
+        """
+        return shell.CfgShell(
+            ssh_id_file_path=self.cfg.get_str('shell', 'ssh_id_file_path',
+                                              required=True),
+            public_reg_host=self.cfg.get_str('shell', 'public_reg_host',
+                                           required=True),
+            public_reg_port=self.cfg.get_int('shell', 'public_reg_port',
+                                           default_value=5000),
+            debug=self.cfg.get_bool('shell', 'debug', default_value=False)
         )
 
 

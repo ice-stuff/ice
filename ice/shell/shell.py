@@ -5,6 +5,21 @@ from IPython.terminal import embed
 import ice
 from ice import entities
 
+class CfgShell(object):
+    def __init__(self, ssh_id_file_path, public_reg_host,
+                 public_reg_port=5000, debug=False):
+        """
+        :param string ssh_id_file_path: The path to the SSH id file.
+        :param string public_reg_host: The hostname/IP address of the registry
+            server, that is passed to the iCE agent in the new VMs.
+        :param int public_reg_port:
+        :param bool debug:
+        """
+        self.ssh_id_file_path = ssh_id_file_path
+        self.public_reg_host = public_reg_host
+        self.public_reg_port = public_reg_port
+        self.debug = debug
+
 
 class Shell(object):
     """IPython shell wrapper class."""
@@ -43,19 +58,19 @@ class Shell(object):
                 args = args_str.split()
                 return cmd.cb(*args)
 
-    def __init__(self, client, logger, extensions=[], debug=False):
+    def __init__(self, cfg, client, logger, extensions=[]):
         """Create a new shell object.
 
+        :param ice.shell.CfgShell cfg: The shell cofiguration.
         :param ice.registry.client.RegistryClient registry: The registry
             client.
         :param logging.Logger logger:
         :param list extensions: A list of `ice.shell.ext.ShellExt` instances.
-        :param debug bool: Set to true if the shell is in debug mode.
         """
+        self.cfg = cfg
         self.client = client
         self.logger = logger
         self.extensions = extensions
-        self.debug = debug
         self.session = None
 
         # Default banner messages
@@ -71,7 +86,7 @@ class Shell(object):
         self._commands_dict = {}
         self.add_command('h', self.run_h)
         self.add_command('version', self.run_version)
-        if self.debug:
+        if self.cfg.debug:
             self.add_command('sess_cd', self.run_sess_cd)
 
     def get_session(self):

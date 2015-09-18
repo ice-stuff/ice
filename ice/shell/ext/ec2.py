@@ -7,13 +7,22 @@ from . import ShellExt
 class EC2Shell(ShellExt):
     """Wrapper class for EC2-like cloud related shell commands."""
 
-    def __init__(self, logger, debug=False):
+    def __init__(self, cfg_factory, registry, public_reg_host, public_reg_port,
+                 logger, debug=False):
         """
+        :param ice.config.ConfigFactory cfg_factory:
+        :param ice.registry.client.RegistryClient registry:
+        :param string public_reg_host:
+        :param int public_reg_port:
         :param logging.Logger logger:
         :param bool debug: Set to True for debug behaviour.
         """
+        self.cfg_factory = cfg_factory
+        self.registry = registry
+        self.public_reg_host = public_reg_host
+        self.public_reg_port = public_reg_port
+        self.retain_vms = False
         self._instances = {}
-        self._ec2_clients = {}
         super(EC2Shell, self).__init__(logger, debug)
 
     def start(self, shell):
@@ -42,10 +51,17 @@ class EC2Shell(ShellExt):
             'ec2_destroy', self.run_destroy,
             parser=self.get_destroy_parser()
         )
+        shell.add_command(
+            'ec2_retain_vms', self.run_retain_vms,
+            usage='When called, iCE will not destroy EC2 VMs on exit.'
+        )
 
     def stop(self):
         """Stops the extension. It cleans up the state of the extension."""
         super(EC2Shell, self).stop()
+
+        if self.retain_vms:
+            return
 
         clouds = {}
         for inst_id, entry in self._instances.items():
@@ -57,25 +73,26 @@ class EC2Shell(ShellExt):
         for cloud_id, instance_ids in clouds.items():
             self._get_client(cloud_id).destroy(instance_ids)
 
-    def register_client(self, cloud_id, ec2_client):
-        """Register an EC2 client.
+    def _get_spec(self, cloud_id=None):
+        if cloud_id is None:
+            cloud_ids = self.cfg_factory.get_ec2_cloud_ids()
+            if len(cloud_ids) == 0:
+                return None
+            cloud_id = cloud_ids[0]
 
-        :param string cloud_id: The cloud key of the client.
-        :param ice.ec2_client.EC2Client ec2_client:
-        """
-        self._ec2_clients[cloud_id] = ec2_client
+        return self.cfg_factory.get_ec2_vm_spec(cloud_id)
 
     def _get_client(self, cloud_id=None):
         if cloud_id is None:
-            items = self._ec2_clients.items()
-            if len(items) == 0:
+            cloud_ids = self.cfg_factory.get_ec2_cloud_ids()
+            if len(cloud_ids) == 0:
                 return None
-            return items[0][1]
+            cloud_id = cloud_ids[0]
 
-        if cloud_id not in self._ec2_clients:
-            return None
-
-        return self._ec2_clients[cloud_id]
+        return ec2_client.EC2Client(
+            self.cfg_factory.get_ec2_cloud_auth(cloud_id),
+            self.logger
+        )
 
     def get_ls_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_ls', add_help=False)
@@ -108,9 +125,19 @@ class EC2Shell(ShellExt):
 
     def run_create(self, args):
         """Creates new EC2 instances."""
-        reservation = self._get_client(args.cloud_id).create(
-            args.amt, args.ami_id, args.flavor
+        spec = self._get_spec(args.cloud_id)
+        if args.ami_id is not None:
+            spec.ami_id = args.ami_id
+        if args.flavor is not None:
+            spec.flavor = args.flavor
+
+        spec.user_data = self.registry.compile_user_data(
+            self.shell.get_session(),
+            self.public_reg_host,
+            self.public_reg_port
         )
+
+        reservation = self._get_client(args.cloud_id).create(args.amt, spec)
         if reservation is None:
             self.logger.error('Failed to run instances!')
             return
@@ -120,7 +147,6 @@ class EC2Shell(ShellExt):
                 'inst': inst,
                 'cloud_id': args.cloud_id
             }
-
         self._print_reservations([reservation])
 
     def get_wait_parser(self):
@@ -161,6 +187,10 @@ class EC2Shell(ShellExt):
                 del self._instances[inst.id]
 
         self._print_instances(instances)
+
+    def run_retain_vms(self):
+        """When called, iCE will not destroy EC2 VMs on exit."""
+        self.retain_vms = True
 
     #
     # Helpers

@@ -1,2 +1,2 @@
 """iCE Shell module."""
-from .shell import Shell
+from .shell import Shell, CfgShell

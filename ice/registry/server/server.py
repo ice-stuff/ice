@@ -1,9 +1,6 @@
-import logging
-
 from flask import request
 from eve import Eve
-
-from . import validation, domain, config
+from . import validation
 
 
 class RegistryServer(Eve):
