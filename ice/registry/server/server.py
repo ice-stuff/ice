@@ -53,4 +53,9 @@ class RegistryServer(Eve):
         )
 
     def handle_get_my_ip(self):
+        header = request.headers.get('X-Forwarded-For', None)
+        if header is not None:
+            ips = header.split(', ')  # Cloud Foundry hack!
+            return ips[0]
+
         return request.environ['REMOTE_ADDR']

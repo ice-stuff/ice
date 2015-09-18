@@ -167,15 +167,13 @@ class RegistryClient:
         :rtype: list of [entities.Instance]
         :return: List of `entities.Instance` instances.
         """
-        # Make calls
         params = None
         if session is not None:
             params = {
                 'where': '{"session_id": "%s"}' % session.id
             }
-        resp = self._call('instances', 'GET', params=params)
 
-        # Process results
+        resp = self._call('instances', 'GET', params=params)
         ret_val = []
         for entry in resp['_items']:
             ret_val.append(entities.Instance(**entry))
