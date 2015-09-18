@@ -26,11 +26,14 @@ def _get_logger():
 
 
 if __name__ == '__main__':
+    server_cfg = _get_config_factory().get_registry_server()
+
     logger = _get_logger()
-    logger.setLevel(logging.DEBUG)
+    if server_cfg.debug:
+        logger.setLevel(logging.DEBUG)
 
     server.RegistryServer(
-        _get_config_factory().get_registry_server(),
+        server_cfg,
         [
             domain.instances.InstancesDomain(),
             domain.sessions.SessionsDomain()
