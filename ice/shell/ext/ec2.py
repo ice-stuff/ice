@@ -43,10 +43,6 @@ class EC2Shell(ShellExt):
             'ec2_create', self.run_create,
             parser=self.get_create_parser()
         )
-        # shell.add_command(
-        #     'ec2_wait', self.run_wait,
-        #     parser=self.get_wait_parser()
-        # )
         shell.add_command(
             'ec2_destroy', self.run_destroy,
             parser=self.get_destroy_parser()
@@ -158,15 +154,6 @@ class EC2Shell(ShellExt):
             '-c', metavar='<Cloud Id>', dest='cloud_id', default=None
         )
         return parser
-
-    # def run_wait(self, args):
-    #     """Wait for 'pending' instances."""
-    #     res = api.ec2.wait(args.timeout, args.cloud_id)
-
-    #     if res:
-    #         self.logger.info('No instances in pending state now!')
-    #     else:
-    #         self.logger.error('Timeout!')
 
     def get_destroy_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_parser', add_help=False)

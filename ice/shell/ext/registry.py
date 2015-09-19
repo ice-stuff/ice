@@ -1,4 +1,5 @@
 """Wrapper class for registry-related shell commands."""
+import time
 import argparse
 from . import ShellExt
 
@@ -25,10 +26,10 @@ class RegistryShell(ShellExt):
         """
         super(RegistryShell, self).start(shell)
         shell.add_command('inst_ls', self.ls_inst)
-        # shell.add_command(
-        #     'inst_wait', self.run_wait,
-        #     parser=self.get_wait_parser()
-        # )
+        shell.add_command(
+            'inst_wait', self.run_wait,
+            parser=self.get_wait_parser()
+        )
         shell.add_command(
             'inst_del', self.del_inst,
             usage='<Instance id> [<Instance id> ...]'
@@ -61,25 +62,51 @@ class RegistryShell(ShellExt):
                   + ' | {0.cloud_id:43s} | {0.created:30s} |'.format(inst)
         print '-' * 129
 
-    # def get_wait_parser(self):
-    #     parser = argparse.ArgumentParser(prog='inst_wait', add_help=False)
-    #     parser.add_argument(
-    #         '-n', metavar='<Amount of instances>', dest='amt', type=int,
-    #         default=1
-    #     )
-    #     parser.add_argument(
-    #         '-t', metavar='<Timeout (sec.)>', dest='timeout', default=120
-    #     )
-    #     return parser
+    def get_wait_parser(self):
+        parser = argparse.ArgumentParser(prog='inst_wait', add_help=False)
+        parser.add_argument(
+            '-n', metavar='<Amount of instances>', dest='amt', type=int,
+            default=1
+        )
+        parser.add_argument(
+            '-t', metavar='<Timeout (sec.)>', dest='timeout', default=120
+        )
+        return parser
 
-    # def run_wait(self, *args):
-    #     """Waits for instances to appear."""
-    #     args = self.get_wait_parser().parse_args(args_raw.split())
-    #     res = api.instances.wait(args.amt, args.timeout)
-    #     if res:
-    #         self.logger.info('Instances are ready!')
-    #     else:
-    #         self.logger.error('Timeout!')
+    def run_wait(self, args):
+        """Waits for instances to appear."""
+        res = self._wait(args.amt, args.timeout)
+        if res:
+            self.logger.info('Instances are ready!')
+        else:
+            self.logger.error('Timeout!')
+
+    def _wait(self, amt, timeout=120):
+        """Wait for `amt` number of instances to appear in the pool.
+
+        :param int amt: The expected number of instances.
+        :param int timeout: The timeout of the command, in seconds.
+        :param ice.entities.Session sess: The current session.
+        :rtype: bool
+        :return: `True` if the condition is satisfied and `False` on time out or
+            error.
+        """
+        seconds = 0
+        while seconds < timeout:
+            instances = self.registry.get_instances_list(
+                self.shell.get_session()
+            )
+            if len(instances) < amt:
+                seconds += 5
+                self.logger.debug(
+                    '{0:d} instances found, sleeping for 5 seconds...'
+                    .format(len(instances))
+                )
+                time.sleep(5)
+                continue
+            return True
+
+        return False
 
     def show_inst(self, *inst_ids):
         """Shows information for a specific instance."""
