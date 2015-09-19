@@ -48,6 +48,10 @@ class EC2Shell(ShellExt):
             parser=self.get_destroy_parser()
         )
         shell.add_command(
+            'ec2_release_vms', self.run_release_vms,
+            usage='When called, iCE will destroy EC2 VMs on exit.'
+        )
+        shell.add_command(
             'ec2_retain_vms', self.run_retain_vms,
             usage='When called, iCE will not destroy EC2 VMs on exit.'
         )
@@ -56,7 +60,13 @@ class EC2Shell(ShellExt):
         """Stops the extension. It cleans up the state of the extension."""
         super(EC2Shell, self).stop()
 
+        if len(self._instances) == 0:
+            return
+
         if self.retain_vms:
+            self.logger.debug(
+                'EC2 VMs will not be deleted, since they are retained'
+            )
             return
 
         clouds = {}
@@ -68,6 +78,9 @@ class EC2Shell(ShellExt):
 
         for cloud_id, instance_ids in clouds.items():
             self._get_client(cloud_id).destroy(instance_ids)
+        self.logger.info(
+            '%s EC2 VMs were successfully deleted.' % len(self._instances)
+        )
 
     def _get_spec(self, cloud_id=None):
         if cloud_id is None:
@@ -174,6 +187,10 @@ class EC2Shell(ShellExt):
                 del self._instances[inst.id]
 
         self._print_instances(instances)
+
+    def run_release_vms(self):
+        """When called, iCE will destroy EC2 VMs on exit."""
+        self.retain_vms = False
 
     def run_retain_vms(self):
         """When called, iCE will not destroy EC2 VMs on exit."""
