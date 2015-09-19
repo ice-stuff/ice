@@ -211,7 +211,7 @@ class RegistryClient:
         :return: Base64 encoded user data.
         """
         user_data = """#!/bin/bash
-curl https://raw.githubusercontent.com/glestaris/iCE/v2/agent/ice-register-self.py -O ./ice-register-self.py
+curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
 ./ice-register-self.py -a http://{0:s}:{1:d} -s {2:s}
 """.format(public_reg_host, public_reg_port, sess.id)
