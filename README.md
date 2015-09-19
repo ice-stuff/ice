@@ -27,16 +27,8 @@ joined the instances pool.
 
 ## Examples
 
-Two examples are included:
-
 * `experiments/simple.py` A very simple experiment that just gets the FQDN host
     names of the iCE instances.
-* `experiments/clique.py` A more complex experiment, in which the instances
-    make a clique, in the sense that each instance sends a 500MB file to all
-    other instances through `dd`. The experiment is measuring the transferring
-    speeds and plots histograms with the results. Also there is the
-    `experiments/clique-runner.py` file. This is a Python script that uses the
-    iCE Python client API, to launch VMs and execute the clique experiment.
 
 ## Instance registration
 
