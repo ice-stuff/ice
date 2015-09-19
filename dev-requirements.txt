@@ -3,3 +3,4 @@ nose==1.3.0
 unittest2==1.1.0
 mock==1.3.0
 coverage==3.7.1
+mamba==0.8.5

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mamba test/e2e/local.py
+
+

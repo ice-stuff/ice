@@ -3,7 +3,7 @@ language: python
 python:
   - "2.7"
 install: "pip install -r dev-requirements.txt"
-script: ./helpers/run-tests
+script: ./helpers/run-unit-tests
 addons:
   artifacts:
     paths:
