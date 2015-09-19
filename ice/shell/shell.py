@@ -88,6 +88,15 @@ class Shell(object):
         self.add_command('version', self.run_version)
         if self.cfg.debug:
             self.add_command('sess_cd', self.run_sess_cd)
+            self.add_command(
+                'release_sess', self.run_release_sess,
+                usage='When called, iCE will destroy the session on exit.'
+            )
+            self.add_command(
+                'retain_sess', self.run_retain_sess,
+                usage='When called, iCE will not destroy the session on exit.'
+            )
+
 
     def get_session(self):
         """Return the current session.
@@ -134,7 +143,7 @@ class Shell(object):
         )
         self.client.submit_session(self.session)
         self.logger.debug('Session id = {0.id:s}'.format(self.session))
-        self.is_session_shared = False
+        self.retain_session = False
 
         shell_cfg = loader.Config()
         pc = shell_cfg.PromptManager
@@ -167,11 +176,14 @@ class Shell(object):
         for ext in self.extensions:
             ext.stop()
 
-        if not self.is_session_shared:
+        if not self.retain_session:
             self.client.delete_session(self.session)
+            self.logger.debug(
+                'Session `%s` was successfully deleted.' % self.session.id
+            )
         else:
             self.logger.info(
-                'Current session will not be closed, since it is shared!'
+                'Current session will not be closed, since it is retained!'
             )
 
     def run_version(self, magics, args_raw):
@@ -200,16 +212,24 @@ class Shell(object):
 
     def run_sess_cd(self, session_id):
         """Changes session."""
-        # Load session
-        self.session = self.client.get_session(session_id)
-        if self.session is None:
+        new_session = self.client.get_session(session_id)
+        if new_session is None:
             raise Shell.Error('Failed to load session!')
+
+        self.session = new_session
         self.logger.debug('New session id = {0.id:s}'.format(self.session))
 
-        # Set session as shared, to avoid closing it.
-        self.is_session_shared = True
+        self.retain_session = True
         self.logger.debug(
             'Loaded session is now shared. Closing this shell will not close'
             + ' the session. Only the parent shell of current session can'
             + ' close it.'
         )
+
+    def run_release_sess(self):
+        """When called, iCE will destroy the session on exit."""
+        self.retain_session = False
+
+    def run_retain_sess(self):
+        """When called, iCE will retain the session on exit."""
+        self.retain_session = True
