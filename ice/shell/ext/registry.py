@@ -131,8 +131,13 @@ class RegistryShell(ShellExt):
             return
 
         for inst_id in inst_ids:
-            if not self.registry.delete_instance(inst_id):
+            inst = self.registry.get_instance(inst_id)
+            if inst is None:
                 self.logger.error('Failed to find instance `%s`!' % inst_id)
+                continue
+
+            if not self.registry.delete_instance(inst):
+                self.logger.error('Failed to delete instance `%s`!' % inst_id)
                 continue
             else:
                 self.logger.info(

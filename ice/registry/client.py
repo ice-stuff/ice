@@ -145,16 +145,16 @@ class RegistryClient:
         inst.id = resp['_id']
         return inst.id
 
-    def delete_instance(self, inst_id):
+    def delete_instance(self, inst):
         """
         Deletes an instance from the backend.
 
-        :param str inst_id: The id of the instance.
+        :param entities.Instance inst: The instance
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
         try:
-            resp = self._call('instances/%s' % inst_id, 'DELETE')
+            resp = self._call('instances/%s' % inst.id, 'DELETE')
             return (resp is not None)
         except RegistryClient.APIException:
             return False

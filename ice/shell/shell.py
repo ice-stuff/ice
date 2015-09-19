@@ -220,10 +220,10 @@ class Shell(object):
         self.logger.debug('New session id = {0.id:s}'.format(self.session))
 
         self.retain_session = True
-        self.logger.debug(
-            'Loaded session is now shared. Closing this shell will not close'
-            + ' the session. Only the parent shell of current session can'
-            + ' close it.'
+        self.logger.info(
+            'Loaded session is now retained. Closing this shell will not close'
+            + ' the session. Please use `release_sess` to delete the session'
+            + ' on exit.'
         )
 
     def run_release_sess(self):
