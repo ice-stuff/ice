@@ -118,19 +118,17 @@ class Shell(object):
         self._commands.append(cmd)
         self._commands_dict[name] = cmd
 
-    def start(self, scripts_to_run=None):
-        """Starts the shell.
+    def run(self, script_path=None):
+        """Run the shell.
 
-        :param list of [str] scripts_to_run: List of scripts to run.
+        :param str script_path: Script to run.
         :raises Shell.Error: In case of error.
         """
-        # Check if inside IPython shell already
         if IPython.get_ipython() is not None:
             raise Shell.Error(
                 'Cannot run iCE shell from within an IPython shell!'
             )
 
-        # Make session
         self.session = entities.Session(
             client_ip_addr=self.client.get_my_ip()
         )
@@ -138,18 +136,15 @@ class Shell(object):
         self.logger.debug('Session id = {0.id:s}'.format(self.session))
         self.is_session_shared = False
 
-        # Shell configuration
         shell_cfg = loader.Config()
         pc = shell_cfg.PromptManager
         pc.in_template = '$> '
         pc.in2_template = '   '
         pc.out_template = ''
 
-        # Start extensions
         for ext in self.extensions:
             ext.start(self)
 
-        # Run
         shell = embed.InteractiveShellEmbed(
             config=shell_cfg,
             banner1='* ' + str('*' * 68) + '\n'
@@ -163,13 +158,15 @@ class Shell(object):
                 self.CommandCallbackWrapper(entry),
                 magic_name=entry.name
             )
-        shell()
 
-        # Stop extensions
+        if script_path is None:
+            shell()
+        else:
+            shell.safe_execfile_ipy(script_path)
+
         for ext in self.extensions:
             ext.stop()
 
-        # Clean session
         if not self.is_session_shared:
             self.client.delete_session(self.session)
         else:

@@ -29,6 +29,10 @@ def _get_logger():
 
 
 if __name__ == '__main__':
+    script_path = None
+    if len(sys.argv) == 2:
+        script_path = sys.argv[1]
+
     cfg_factory = _get_config_factory()
 
     reg_cfg = cfg_factory.get_registry_client()
@@ -65,4 +69,4 @@ if __name__ == '__main__':
                 debug=shell_cfg.debug
             )
         ]
-    ).start(sys.argv[1:])
+    ).run(script_path)
