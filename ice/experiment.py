@@ -160,11 +160,11 @@ class Experiment(object):
 
         with fabric_api.settings(hosts=hosts, key_filename=key_filename):
             if args is None:
-                args = [hosts]
+                args = []
             elif isinstance(args, types.ListType):
-                args = [hosts] + args
+                args = args
             else:
-                args = [hosts] + [args]
+                args = [args]
 
             if isinstance(func, ice.Runner):
                 return func(*args)

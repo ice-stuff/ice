@@ -190,32 +190,32 @@ class TestRun(unittest2.TestCase):
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
         self.assertEqual(
-            self.exp.run(['hello', 'world'], '', func_name='run_a'),
+            self.exp.run([], '', func_name='run_a'),
             'banana'
         )
-        mock_runner.assert_called_once_with(['hello', 'world'])
+        mock_runner.assert_called_once_with()
 
     def test_runner_single_arg(self):
         mock_runner = mock.MagicMock(return_value='betty')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
         self.assertEqual(
-            self.exp.run(['hello', 'world'], '', func_name='run_a', args=12),
+            self.exp.run([], '', func_name='run_a', args=12),
             'betty'
         )
-        mock_runner.assert_called_once_with(['hello', 'world'], 12)
+        mock_runner.assert_called_once_with(12)
 
     def test_runner_many_args(self):
         mock_runner = mock.MagicMock(return_value={'hello': 'world'})
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
         self.assertEqual(
-            self.exp.run(['hello', 'world'], '', func_name='run_a',
+            self.exp.run([], '', func_name='run_a',
                          args=[12, 'test_1', 'test_2']),
             {'hello': 'world'}
         )
         mock_runner.assert_called_once_with(
-            ['hello', 'world'], 12, 'test_1', 'test_2'
+            12, 'test_1', 'test_2'
         )
 
     def test_task(self):
@@ -229,7 +229,7 @@ class TestRun(unittest2.TestCase):
         )
         fabric_api.execute.assert_called_once_with(
             self.exp.module.task_a_a,
-            ['hello', 'world'], 12, 'test_1', 'test_2'
+            12, 'test_1', 'test_2'
         )
 
         fabric_api.execute = old_fab_execute
