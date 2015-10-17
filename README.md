@@ -1,6 +1,6 @@
 # iCE: Interactive cloud experimentation tool
 
-[![Build Status](https://travis-ci.org/glestaris/iCE.svg?branch=wip-improve-coverage)](https://travis-ci.org/glestaris/iCE)
+[![Build Status](https://travis-ci.org/glestaris/ice.svg?branch=master)](https://travis-ci.org/glestaris/ice)
 
 [Docs](https://github.com/glestaris/iCE/wiki)
 
