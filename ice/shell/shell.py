@@ -86,16 +86,15 @@ class Shell(object):
         self._commands_dict = {}
         self.add_command('h', self.run_h)
         self.add_command('version', self.run_version)
-        if self.cfg.debug:
-            self.add_command('sess_cd', self.run_sess_cd)
-            self.add_command(
-                'release_sess', self.run_release_sess,
-                usage='When called, iCE will destroy the session on exit.'
-            )
-            self.add_command(
-                'retain_sess', self.run_retain_sess,
-                usage='When called, iCE will not destroy the session on exit.'
-            )
+        self.add_command('sess_cd', self.run_sess_cd)
+        self.add_command(
+            'release_sess', self.run_release_sess,
+            usage='When called, iCE will destroy the session on exit.'
+        )
+        self.add_command(
+            'retain_sess', self.run_retain_sess,
+            usage='When called, iCE will not destroy the session on exit.'
+        )
 
 
     def get_session(self):
