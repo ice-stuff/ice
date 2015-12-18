@@ -6,18 +6,12 @@ import ice
 from ice import entities
 
 class CfgShell(object):
-    def __init__(self, ssh_id_file_path, public_reg_host,
-                 public_reg_port=5000, debug=False):
+    def __init__(self, ssh_id_file_path, debug=False):
         """
         :param string ssh_id_file_path: The path to the SSH id file.
-        :param string public_reg_host: The hostname/IP address of the registry
-            server, that is passed to the iCE agent in the new VMs.
-        :param int public_reg_port:
         :param bool debug:
         """
         self.ssh_id_file_path = ssh_id_file_path
-        self.public_reg_host = public_reg_host
-        self.public_reg_port = public_reg_port
         self.debug = debug
 
 

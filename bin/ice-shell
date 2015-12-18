@@ -63,8 +63,8 @@ if __name__ == '__main__':
             ext.ec2.EC2Shell(
                 cfg_factory,
                 registry,
-                shell_cfg.public_reg_host,
-                shell_cfg.public_reg_port,
+                reg_cfg.host,
+                reg_cfg.port,
                 logger,
                 debug=shell_cfg.debug
             )

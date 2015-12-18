@@ -124,10 +124,6 @@ class ConfigFactory(object):
         return shell.CfgShell(
             ssh_id_file_path=self.cfg.get_str('shell', 'ssh_id_file_path',
                                               required=True),
-            public_reg_host=self.cfg.get_str('shell', 'public_reg_host',
-                                           required=True),
-            public_reg_port=self.cfg.get_int('shell', 'public_reg_port',
-                                           default_value=5000),
             debug=self.cfg.get_bool('shell', 'debug', default_value=False)
         )
 

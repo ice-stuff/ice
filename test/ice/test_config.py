@@ -223,43 +223,27 @@ class TestGetShell(TestConfigFactory):
     def test(self):
         self.cfg.set('shell', 'ssh_id_file_path', '/path/to/file')
         self.cfg.set('shell', 'debug', '1')
-        self.cfg.set('shell', 'public_reg_host', '192.168.1.112')
-        self.cfg.set('shell', 'public_reg_port', '121212')
 
         self.assertObjectEqual(
             self.config_factory.get_shell(),
             shell.CfgShell(
                 ssh_id_file_path='/path/to/file',
-                public_reg_host='192.168.1.112',
-                public_reg_port=121212,
                 debug=True
             )
         )
 
     def test_defaults(self):
         self.cfg.set('shell', 'ssh_id_file_path', '/path/to/file')
-        self.cfg.set('shell', 'public_reg_host', '192.168.1.112')
 
         self.assertObjectEqual(
             self.config_factory.get_shell(),
             shell.CfgShell(
                 ssh_id_file_path='/path/to/file',
-                public_reg_host='192.168.1.112'
             )
         )
 
     def test_missing_ssh_id_file_path(self):
         self.cfg.set('shell', 'debug', '1')
-        self.cfg.set('shell', 'public_reg_host', '192.168.1.112')
-        self.cfg.set('shell', 'public_reg_port', '121212')
-
-        with self.assertRaises(config.ConfigFactory.OptionNotFound):
-            self.config_factory.get_shell()
-
-    def test_missing_public_reg_host(self):
-        self.cfg.set('shell', 'ssh_id_file_path', '/path/to/file')
-        self.cfg.set('shell', 'debug', '1')
-        self.cfg.set('shell', 'public_reg_port', '121212')
 
         with self.assertRaises(config.ConfigFactory.OptionNotFound):
             self.config_factory.get_shell()
