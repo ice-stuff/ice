@@ -6,7 +6,6 @@ import logging
 import ice
 from ice import config
 from ice import shell
-from ice import ec2_client
 from ice.registry import client
 from ice.shell import ext
 
@@ -17,6 +16,7 @@ def _get_config_factory():
         file_path = os.path.join(dir_path, "ice.ini")
         if os.path.isfile(file_path):
             cfg.read(file_path)
+
     return config.ConfigFactory(cfg)
 
 
