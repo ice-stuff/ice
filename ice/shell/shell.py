@@ -5,6 +5,7 @@ from IPython.terminal import embed
 import ice
 from ice import entities
 
+
 class CfgShell(object):
     def __init__(self, ssh_id_file_path, debug=False):
         """
@@ -82,14 +83,13 @@ class Shell(object):
         self.add_command('version', self.run_version)
         self.add_command('sess_cd', self.run_sess_cd)
         self.add_command(
-            'release_sess', self.run_release_sess,
+            'sess_release', self.run_sess_release,
             usage='When called, iCE will destroy the session on exit.'
         )
         self.add_command(
-            'retain_sess', self.run_retain_sess,
+            'sess_retain', self.run_sess_retain,
             usage='When called, iCE will not destroy the session on exit.'
         )
-
 
     def get_session(self):
         """Return the current session.
@@ -135,7 +135,7 @@ class Shell(object):
             client_ip_addr=self.client.get_my_ip()
         )
         self.client.submit_session(self.session)
-        self.logger.debug('Session id = {0.id:s}'.format(self.session))
+        self.logger.info('Session id = {0.id:s}'.format(self.session))
         self.retain_session = False
 
         shell_cfg = loader.Config()
@@ -156,7 +156,7 @@ class Shell(object):
             exit_msg='See ya...'
         )
         for entry in self._commands:
-            ret = shell.register_magic_function(
+            shell.register_magic_function(
                 self.CommandCallbackWrapper(entry),
                 magic_name=entry.name
             )
@@ -171,7 +171,7 @@ class Shell(object):
 
         if not self.retain_session:
             self.client.delete_session(self.session)
-            self.logger.debug(
+            self.logger.info(
                 'Session `%s` was successfully deleted.' % self.session.id
             )
         else:
@@ -198,8 +198,8 @@ class Shell(object):
         print 'All commands explained:'
         print '\n'.join(
             [
-                ' * %s: %s' % (entry.name, entry.get_description())
-                for entry in self._commands
+                ' * %s: %s' % (e.name, e.get_description())
+                for e in self._commands
             ]
         )
 
@@ -210,19 +210,19 @@ class Shell(object):
             raise Shell.Error('Failed to load session!')
 
         self.session = new_session
-        self.logger.debug('New session id = {0.id:s}'.format(self.session))
+        self.logger.info('New session id = {0.id:s}'.format(self.session))
 
         self.retain_session = True
         self.logger.info(
             'Loaded session is now retained. Closing this shell will not close'
-            + ' the session. Please use `release_sess` to delete the session'
+            + ' the session. Please use `sess_release` to delete the session'
             + ' on exit.'
         )
 
-    def run_release_sess(self):
+    def run_sess_release(self):
         """When called, iCE will destroy the session on exit."""
         self.retain_session = False
 
-    def run_retain_sess(self):
+    def run_sess_retain(self):
         """When called, iCE will retain the session on exit."""
         self.retain_session = True
