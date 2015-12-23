@@ -209,7 +209,7 @@ def _extract_networks(cmd):
     reg_ex = re.compile(
         r'^[0-9]*\:\s*([a-z0-9]*)\s*inet\s*([0-9\.\/]*)\s*brd\s*([0-9\.]*).*$'
     )
-    (out, err) = _run_sudo('ip -o -f inet addr show')
+    (out, err) = _run_sudo('ip -o -f inet addr')
     for line in out.split('\n'):
         match = reg_ex.match(line)
         if match is None:
