@@ -2,5 +2,3 @@
 
 nosetests --with-coverage --cover-package ice \
   --cover-html --cover-erase --cover-html-dir coveragereport -v
-
-
