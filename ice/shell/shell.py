@@ -1,7 +1,7 @@
 """IPython shell wrapper class."""
 import IPython
-from IPython.config import loader
 from IPython.terminal import embed
+from IPython.terminal.prompts import Prompts, Token
 import ice
 from ice import entities
 
@@ -14,6 +14,17 @@ class CfgShell(object):
         """
         self.ssh_id_file_path = ssh_id_file_path
         self.debug = debug
+
+
+class ShellPrompts(Prompts):
+    def in_prompt_tokens(self, cli=None):
+        return [(Token, '$> ')]
+
+    def continuation_prompt_tokens(self, cli=None, width=None):
+        return [(Token, '   ')]
+
+    def out_prompt_tokens():
+        return [(Token, '')]
 
 
 class Shell(object):
@@ -138,17 +149,11 @@ class Shell(object):
         self.logger.info('Session id = {0.id:s}'.format(self.session))
         self.retain_session = False
 
-        shell_cfg = loader.Config()
-        pc = shell_cfg.PromptManager
-        pc.in_template = '$> '
-        pc.in2_template = '   '
-        pc.out_template = ''
-
         for ext in self.extensions:
             ext.start(self)
 
         shell = embed.InteractiveShellEmbed(
-            config=shell_cfg,
+            prompts_class=ShellPrompts,
             banner1='* ' + str('*' * 68) + '\n'
                     + '\n'.join(
                 ['* %s' % msg for msg in self._banner_messages]) + '\n'
