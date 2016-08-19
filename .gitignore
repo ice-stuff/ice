@@ -10,8 +10,7 @@
 # Local configuration
 temp
 config/local/*
-.envrc
-               
+
 # IDE
 .idea
 .ropeproject
