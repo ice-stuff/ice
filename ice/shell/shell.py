@@ -57,6 +57,10 @@ class Shell(object):
 
         def __call__(self, args_str):
             cmd = self.command
+            if args_str == '-h':
+                print cmd.get_usage()
+                return
+
             if cmd.parser is not None:
                 args = cmd.parser.parse_args(args_str.split())
                 return cmd.cb(args)
