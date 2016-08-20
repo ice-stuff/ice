@@ -1,5 +1,4 @@
 import json
-import base64
 import requests
 from requests import exceptions
 import ice
@@ -210,13 +209,11 @@ class RegistryClient:
         :rtype: str
         :return: Base64 encoded user data.
         """
-        user_data = """#!/bin/bash
+        return """#!/bin/bash
 curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
 ./ice-register-self.py -a http://{0:s}:{1:d} -s {2:s}
 """.format(public_reg_host, public_reg_port, sess.id)
-
-        return base64.b64encode(user_data)
 
     #
     # Helpers
