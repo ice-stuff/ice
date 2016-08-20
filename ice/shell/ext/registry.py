@@ -49,18 +49,21 @@ class RegistryShell(ShellExt):
             return
 
         self.logger.info('Found %d instances' % len(inst_list))
-        print '-' * 129
-        print '| {0:23s} | {1:20s} | {2:43s} | {3:30s} |'.format(
+        print '-' * 80
+        print '| {0:24s} | {1:20s} | {2:26s} |'.format(
             'Id',
-            'Public IP address',
+            'Public IP',
             'Cloud Id',
-            'Created on'
         )
-        print '-' * 129
+        print '-' * 80
         for inst in inst_list:
-            print '| {0.id:23s} | {0.public_ip_addr:20s}'.format(inst) \
-                  + ' | {0.cloud_id:43s} | {0.created:30s} |'.format(inst)
-        print '-' * 129
+            cloud_id = inst.cloud_id
+            if len(cloud_id) > 26:
+                cloud_id = cloud_id[:26]
+            print '| {0.id:24s}'.format(inst) \
+                + ' | {0.public_ip_addr:20s}'.format(inst) \
+                + ' | {0:26s} |'.format(cloud_id)
+        print '-' * 80
 
     def get_wait_parser(self):
         parser = argparse.ArgumentParser(prog='inst_wait', add_help=False)
@@ -88,8 +91,8 @@ class RegistryShell(ShellExt):
         :param int timeout: The timeout of the command, in seconds.
         :param ice.entities.Session sess: The current session.
         :rtype: bool
-        :return: `True` if the condition is satisfied and `False` on time out or
-            error.
+        :return: `True` if the condition is satisfied and `False` on time out
+            or error.
         """
         seconds = 0
         while seconds < timeout:
@@ -122,7 +125,8 @@ class RegistryShell(ShellExt):
 
             # Printout information
             for key, value in inst.__dict__.items():
-                print '{0:30s}: {1}'.format(key, value)
+                print '{}:'.format(key)
+                print '  {}'.format(value)
 
     def del_inst(self, *inst_ids):
         """Deletes a specific instance."""

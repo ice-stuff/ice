@@ -158,10 +158,10 @@ class Shell(object):
 
         shell = embed.InteractiveShellEmbed(
             prompts_class=ShellPrompts,
-            banner1='* ' + str('*' * 68) + '\n'
+            banner1='* ' + str('*' * 78) + '\n'
                     + '\n'.join(
                 ['* %s' % msg for msg in self._banner_messages]) + '\n'
-            + '* ' + str('*' * 68),
+            + '* ' + str('*' * 78),
             exit_msg='See ya...'
         )
         for entry in self._commands:

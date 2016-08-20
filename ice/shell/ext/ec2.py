@@ -206,9 +206,10 @@ class EC2Shell(ShellExt):
         :rtype: str
         :return: A string.
         """
-        ret_val = '| {0.id:15s} | {0.image_id:15s}'.format(inst) \
-                  + ' | {0.instance_type:15s} | {0.ip_address:20s}'.format(inst) \
-                  + ' | {0.state:15s} | {0.launch_time:30s} |'.format(inst)
+        ret_val = '| {0.id:19s}'.format(inst) \
+                  + ' | {0.instance_type:15s}'.format(inst) \
+                  + ' | {0.ip_address:20s}'.format(inst) \
+                  + ' | {0.state:13s} |'.format(inst)
         return ret_val
 
     def _print_reservations(self, reservations, show_reservations=True):
@@ -217,44 +218,40 @@ class EC2Shell(ShellExt):
             reservations.
         :param bool show_reservations: Show the reservation names.
         """
-        print '-' * 129
-        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
+        print '-' * 80
+        print '| {0:19s} | {1:15s} | {2:20s} | {3:13s} |' \
             .format(
                 'Id',
-                'AMI Id',
                 'Instance type',
                 'Public IP',
-                'Status',
-                'Launched on'
+                'State',
             )
-        print '-' * 129
+        print '-' * 80
         for reservation in reservations:
             if show_reservations:
-                print '-' * 129
+                print '-' * 80
                 print '| Reservation: {0.id:20s} {1}|'.format(
-                    reservation, ' ' * 92
+                    reservation, ' ' * 43
                 )
-                print '-' * 129
+                print '-' * 80
             for inst in reservation.instances:
                 print self._format_instance(inst)
-        print '-' * 129
+        print '-' * 80
 
     def _print_instances(self, instances):
         """Prints a list of instances.
         :param list of [boto.ec2.instance.Instance] instances: The
             instances.
         """
-        print '-' * 129
-        print '| {0:15s} | {1:15s} | {2:15s} | {3:20s} | {4:15s} | {5:30s} |' \
+        print '-' * 80
+        print '| {0:19s} | {1:15s} | {2:20s} | {3:13s} |' \
             .format(
                 'Id',
-                'AMI Id',
                 'Instance type',
                 'Public IP',
-                'Status',
-                'Launched on'
+                'State',
             )
-        print '-' * 129
+        print '-' * 80
         for inst in instances:
             print self._format_instance(inst)
-        print '-' * 129
+        print '-' * 80
