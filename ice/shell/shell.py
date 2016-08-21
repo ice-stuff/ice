@@ -23,7 +23,7 @@ class ShellPrompts(Prompts):
     def continuation_prompt_tokens(self, cli=None, width=None):
         return [(Token, '   ')]
 
-    def out_prompt_tokens():
+    def out_prompt_tokens(self):
         return [(Token, '')]
 
 
