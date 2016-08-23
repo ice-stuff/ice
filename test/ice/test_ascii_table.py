@@ -4,19 +4,33 @@ from ice import ascii_table
 
 class TestASCIITable(unittest2.TestCase):
     def test_add_column(self):
-        t = ascii_table.ASCIITable(80)
-        col = ascii_table.ASCIITableColumn("Test", 20)
+        t = ascii_table.ASCIITable()
+        col = ascii_table.ASCIITableColumn('Test', 20)
         t.add_column('test', col)
-        self.assertEqual(t.cols, {"test": col})
+        self.assertEqual(t.cols, [col])
 
     def test_add_column_with_unknown_type(self):
-        t = ascii_table.ASCIITable(80)
+        t = ascii_table.ASCIITable()
         with self.assertRaises(TypeError):
-            t.add_column('test', {"hello": "world"})
+            t.add_column('test', {'hello': 'world'})
+
+    def test_add_column_after_rows_has_been_added(self):
+        t = ascii_table.ASCIITable()
+        col = ascii_table.ASCIITableColumn('Test', 20)
+        t.add_column('test', col)
+
+        row = {
+            'test': 'hello-world'
+        }
+        t.add_row(row)
+
+        with self.assertRaises(StandardError):
+            col = ascii_table.ASCIITableColumn('Another column', 20)
+            t.add_column('another_col', col)
 
     def test_add_row(self):
-        t = ascii_table.ASCIITable(80)
-        col = ascii_table.ASCIITableColumn("Test", 20)
+        t = ascii_table.ASCIITable()
+        col = ascii_table.ASCIITableColumn('Test', 20)
         t.add_column('test', col)
 
         row = {
@@ -27,8 +41,8 @@ class TestASCIITable(unittest2.TestCase):
         self.assertEqual(t.rows, [row])
 
     def test_add_row_with_missing_field(self):
-        t = ascii_table.ASCIITable(80)
-        col = ascii_table.ASCIITableColumn("Test", 20)
+        t = ascii_table.ASCIITable()
+        col = ascii_table.ASCIITableColumn('Test', 20)
         t.add_column('test', col)
 
         row = {}
@@ -37,7 +51,7 @@ class TestASCIITable(unittest2.TestCase):
         self.assertListEqual(t.rows, [])
 
     def test_add_row_with_non_existing_field(self):
-        t = ascii_table.ASCIITable(80)
+        t = ascii_table.ASCIITable()
 
         row = {
             'non_existing_key': 'hello world'
@@ -45,3 +59,45 @@ class TestASCIITable(unittest2.TestCase):
         with self.assertRaises(ValueError):
             t.add_row(row)
         self.assertListEqual(t.rows, [])
+
+
+class TestASCIIRenderer(unittest2.TestCase):
+    def test(self):
+        table = ascii_table.ASCIITable()
+        table.add_column('col_a', ascii_table.ASCIITableColumn('Column A', 30))
+        table.add_column('col_b', ascii_table.ASCIITableColumn('Column B', 15))
+        table.add_column('col_c', ascii_table.ASCIITableColumn('Column C', 20))
+        table.add_row({
+            'col_a': 'hello world #1',
+            'col_b': 'foo bar #1',
+            'col_c': 'another test #1',
+        })
+        table.add_row({
+            'col_a': 'foo bar #2',
+            'col_b': 'hello world #2',
+            'col_c': 'another test #2',
+        })
+        table.add_row({
+            'col_a': 'another test #3',
+            'col_b': 'foo bar #3',
+            'col_c': 'hello world #3',
+        })
+        table.add_row({
+            'col_a': 'hello world #4',
+            'col_b': 'another test #4',
+            'col_c': 'foo bar #4',
+        })
+
+        renderer = ascii_table.ASCIITableRenderer()
+        self.maxDiff = 2500
+        self.assertEqual(
+            renderer.render(table),
+            """-----------------------------------------------------------------
+| Column A                    | Column B     | Column C         |
+-----------------------------------------------------------------
+| hello world #1              | foo bar #1   | another test #1  |
+| foo bar #2                  | hello world  | another test #2  |
+| another test #3             | foo bar #3   | hello world #3   |
+| hello world #4              | another test | foo bar #4       |
+-----------------------------------------------------------------
+""")
