@@ -62,7 +62,7 @@ class TestASCIITable(unittest2.TestCase):
 
 
 class TestASCIIRenderer(unittest2.TestCase):
-    def test(self):
+    def test_renders(self):
         table = ascii_table.ASCIITable()
         table.add_column('col_a', ascii_table.ASCIITableColumn('Column A', 30))
         table.add_column('col_b', ascii_table.ASCIITableColumn('Column B', 15))
@@ -74,7 +74,7 @@ class TestASCIIRenderer(unittest2.TestCase):
         })
         table.add_row({
             'col_a': 'foo bar #2',
-            'col_b': 'hello world #2',
+            'col_b': 'hello #2',
             'col_c': 'another test #2',
         })
         table.add_row({
@@ -84,7 +84,7 @@ class TestASCIIRenderer(unittest2.TestCase):
         })
         table.add_row({
             'col_a': 'hello world #4',
-            'col_b': 'another test #4',
+            'col_b': 'another #4',
             'col_c': 'foo bar #4',
         })
 
@@ -96,8 +96,53 @@ class TestASCIIRenderer(unittest2.TestCase):
 | Column A                    | Column B     | Column C         |
 -----------------------------------------------------------------
 | hello world #1              | foo bar #1   | another test #1  |
-| foo bar #2                  | hello world  | another test #2  |
+| foo bar #2                  | hello #2     | another test #2  |
 | another test #3             | foo bar #3   | hello world #3   |
-| hello world #4              | another test | foo bar #4       |
+| hello world #4              | another #4   | foo bar #4       |
 -----------------------------------------------------------------
+""")
+
+    def test_renders_when_val_is_larger_than_width(self):
+        table = ascii_table.ASCIITable()
+        table.add_column('col_a', ascii_table.ASCIITableColumn('Column A', 30))
+        table.add_column('col_b', ascii_table.ASCIITableColumn('Column B', 15))
+        table.add_row({
+            'col_a': 'hello world #1',
+            'col_b': 'foo bar #1',
+        })
+        table.add_row({
+            'col_a': 'foo bar #2',
+            'col_b': 'hello world #2',
+        })
+
+        renderer = ascii_table.ASCIITableRenderer()
+        self.maxDiff = 2500
+        self.assertEqual(
+            renderer.render(table),
+            """---------------------------------------------
+| Column A                    | Column B    |
+---------------------------------------------
+| hello world #1              | foo bar #1  |
+| foo bar #2                  | hello world |
+---------------------------------------------
+""")
+
+    def test_renders_when_val_is_none(self):
+        table = ascii_table.ASCIITable()
+        table.add_column('col_a', ascii_table.ASCIITableColumn('Column A', 30))
+        table.add_column('col_b', ascii_table.ASCIITableColumn('Column B', 15))
+        table.add_row({
+            'col_a': 'hello world #1',
+            'col_b': None,
+        })
+
+        renderer = ascii_table.ASCIITableRenderer()
+        self.maxDiff = 2500
+        self.assertEqual(
+            renderer.render(table),
+            """---------------------------------------------
+| Column A                    | Column B    |
+---------------------------------------------
+| hello world #1              |             |
+---------------------------------------------
 """)

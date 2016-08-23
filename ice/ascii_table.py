@@ -44,6 +44,8 @@ class ASCIITableRenderer(object):
         return out
 
     def _trunc(self, contents, width):
+        if contents is None:
+            return ''
         if len(contents) <= width:
             return contents
         return contents[:width]
