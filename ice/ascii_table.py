@@ -87,7 +87,7 @@ class ASCIITable(object):
 
     def _find_missing_key(self, expected_keys, row_keys):
         for expected_key in expected_keys:
-            if expected_keys in row_keys:
+            if expected_key in row_keys:
                 continue
             raise ValueError('key `{}` is missing'.format(expected_key))
 
