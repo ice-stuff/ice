@@ -49,4 +49,3 @@ class ServerTestCase(unittest2.TestCase):
 class TestMyIP(ServerTestCase):
     def test(self):
         self.assertEqual(self.client.get_my_ip(), '127.0.0.1')
-
