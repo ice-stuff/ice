@@ -1,6 +1,7 @@
 """Wrapper class for registry-related shell commands."""
 import time
 import argparse
+from ice import ascii_table
 from . import ShellExt
 
 
@@ -49,21 +50,21 @@ class RegistryShell(ShellExt):
             return
 
         self.logger.info('Found %d instances' % len(inst_list))
-        print '-' * 80
-        print '| {0:24s} | {1:20s} | {2:26s} |'.format(
-            'Id',
-            'Public IP',
-            'Cloud Id',
-        )
-        print '-' * 80
+        table = ascii_table.ASCIITable()
+        table.add_column('id', ascii_table.ASCIITableColumn('Id', 27))
+        table.add_column('public_ip_addr',
+                         ascii_table.ASCIITableColumn('Public IP', 23))
+        table.add_column('cloud_id',
+                         ascii_table.ASCIITableColumn('Cloud Id', 30))
+
         for inst in inst_list:
-            cloud_id = inst.cloud_id
-            if len(cloud_id) > 26:
-                cloud_id = cloud_id[:26]
-            print '| {0.id:24s}'.format(inst) \
-                + ' | {0.public_ip_addr:20s}'.format(inst) \
-                + ' | {0:26s} |'.format(cloud_id)
-        print '-' * 80
+            table.add_row({
+                'id': inst.id,
+                'public_ip_addr': inst.public_ip_addr,
+                'cloud_id': inst.cloud_id
+            })
+
+        print ascii_table.ASCIITableRenderer().render(table)
 
     def get_wait_parser(self):
         parser = argparse.ArgumentParser(prog='inst_wait', add_help=False)

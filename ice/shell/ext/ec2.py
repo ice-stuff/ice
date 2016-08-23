@@ -1,6 +1,7 @@
 """Wrapper class for EC2-like cloud related shell commands."""
 import argparse
 from ice import ec2_client
+from ice import ascii_table
 from . import ShellExt
 
 
@@ -118,7 +119,11 @@ class EC2Shell(ShellExt):
         """Lists EC2 instances."""
         reservations = self._get_client(args.cloud_id).get_list()
 
-        self._print_reservations(reservations, args.show_reservations)
+        instances = []
+        for res in reservations:
+            for inst in res.instances:
+                instances.append(inst)
+        self._print_instances(instances)
 
     def get_create_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_create', add_help=False)
@@ -151,12 +156,13 @@ class EC2Shell(ShellExt):
             self.logger.error('Failed to run instances!')
             return
 
+        self.logger.info('Reservation Id = `{}`'.format(reservation.id))
         for inst in reservation.instances:
             self._instances[inst.id] = {
                 'inst': inst,
                 'cloud_id': args.cloud_id
             }
-        self._print_reservations([reservation])
+        self._print_instances(reservation.instances)
 
     def get_wait_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_wait', add_help=False)
@@ -200,58 +206,24 @@ class EC2Shell(ShellExt):
     # Helpers
     #
 
-    def _format_instance(self, inst):
-        """Formats an instance to be printed in a table.
-        :param boto.ec2.instance.Instance inst: The EC2 instance.
-        :rtype: str
-        :return: A string.
-        """
-        ret_val = '| {0.id:19s}'.format(inst) \
-                  + ' | {0.instance_type:15s}'.format(inst) \
-                  + ' | {0.ip_address:20s}'.format(inst) \
-                  + ' | {0.state:13s} |'.format(inst)
-        return ret_val
-
-    def _print_reservations(self, reservations, show_reservations=True):
-        """Prints a list of reservations.
-        :param list of [boto.ec2.instance.Reservation] reservations: The
-            reservations.
-        :param bool show_reservations: Show the reservation names.
-        """
-        print '-' * 80
-        print '| {0:19s} | {1:15s} | {2:20s} | {3:13s} |' \
-            .format(
-                'Id',
-                'Instance type',
-                'Public IP',
-                'State',
-            )
-        print '-' * 80
-        for reservation in reservations:
-            if show_reservations:
-                print '-' * 80
-                print '| Reservation: {0.id:20s} {1}|'.format(
-                    reservation, ' ' * 43
-                )
-                print '-' * 80
-            for inst in reservation.instances:
-                print self._format_instance(inst)
-        print '-' * 80
-
     def _print_instances(self, instances):
         """Prints a list of instances.
-        :param list of [boto.ec2.instance.Instance] instances: The
-            instances.
+        :param list of [boto.ec2.instance.Instance] instances:
         """
-        print '-' * 80
-        print '| {0:19s} | {1:15s} | {2:20s} | {3:13s} |' \
-            .format(
-                'Id',
-                'Instance type',
-                'Public IP',
-                'State',
-            )
-        print '-' * 80
+        table = ascii_table.ASCIITable()
+        table.add_column('id', ascii_table.ASCIITableColumn('Id', 23))
+        table.add_column('instance_type',
+                         ascii_table.ASCIITableColumn('Instance type', 18))
+        table.add_column('ip_address',
+                         ascii_table.ASCIITableColumn('Public IP', 23))
+        table.add_column('state', ascii_table.ASCIITableColumn('State', 16))
+
         for inst in instances:
-            print self._format_instance(inst)
-        print '-' * 80
+            table.add_row({
+                'id': inst.id,
+                'instance_type': inst.instance_type,
+                'ip_address': inst.ip_address,
+                'state': inst.state
+            })
+
+        print ascii_table.ASCIITableRenderer().render(table)
