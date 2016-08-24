@@ -15,6 +15,10 @@ class Runner(Callable):
     pass
 
 
+class ParallelRunner(Runner):
+    pass
+
+
 class Task(Callable):
     def __init__(self, func):
         super(Task, self).__init__(func)

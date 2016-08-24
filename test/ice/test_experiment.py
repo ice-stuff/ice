@@ -168,13 +168,14 @@ class TestGetContents(unittest2.TestCase):
 
 class TestRun(unittest2.TestCase):
     def setUp(self):
+        # Load placeholder experiment. By doing so, following tests can
+        # overwrite functions in this module with mocks.
         mod_file_path = os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__), '..', 'assets',
                 'exp_normal.py'
             )
         )
-
         self.exp = experiment.Experiment(
             logging.getLogger('testing'),
             mod_file_path
@@ -185,37 +186,55 @@ class TestRun(unittest2.TestCase):
             self.exp.run([], '', func_name='non_existing')
         )
 
+    def test_not_callable(self):
+        self.assertFalse(
+            self.exp.run([], '', func_name='a_func')
+        )
+
+    def test_fabric_settings(self):
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
+        self.exp.module.run_a = tasks.Runner(mock_runner)
+
+        with SettingsMock(self) as settings_mock:
+            self.exp.run(['host1', 'host2'], 'file.key', func_name='run_a'),
+            settings_mock.assert_setting('hosts', ['host1', 'host2'])
+            settings_mock.assert_setting('key_filename', 'file.key')
+
     def test_runner_no_args(self):
-        mock_runner = mock.MagicMock(return_value='banana')
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
         self.assertEqual(
-            self.exp.run([], '', func_name='run_a'),
-            'banana'
+            self.exp.run(['host1'], '', func_name='run_a'),
+            'runner-return-value'
         )
-        mock_runner.assert_called_once_with()
+        mock_runner.assert_called_once_with(['host1'])
 
-    def test_runner_single_arg(self):
-        mock_runner = mock.MagicMock(return_value='betty')
+    def test_runner_with_args(self):
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
         self.assertEqual(
-            self.exp.run([], '', func_name='run_a', args=12),
-            'betty'
-        )
-        mock_runner.assert_called_once_with(12)
-
-    def test_runner_many_args(self):
-        mock_runner = mock.MagicMock(return_value={'hello': 'world'})
-        self.exp.module.run_a = tasks.Runner(mock_runner)
-
-        self.assertEqual(
-            self.exp.run([], '', func_name='run_a',
-                         args=[12, 'test_1', 'test_2']),
-            {'hello': 'world'}
+            self.exp.run(
+                ['host1'], '', func_name='run_a',
+                args=[12, 'test_1', 'test_2']
+            ), 'runner-return-value'
         )
         mock_runner.assert_called_once_with(
-            12, 'test_1', 'test_2'
+            ['host1'], 12, 'test_1', 'test_2'
+        )
+
+    def test_runner_with_dict_arg(self):
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
+        self.exp.module.run_a = tasks.Runner(mock_runner)
+
+        self.assertEqual(
+            self.exp.run(
+                ['host1'], '', func_name='run_a', args={'foo': 'bar'}
+            ), 'runner-return-value'
+        )
+        mock_runner.assert_called_once_with(
+            ['host1'], {'foo': 'bar'}
         )
 
     def test_task(self):
@@ -223,18 +242,50 @@ class TestRun(unittest2.TestCase):
         fabric_api.execute = mock.MagicMock(return_value={'test': 12})
 
         self.assertEqual(
-            self.exp.run(['hello', 'world'], '', func_name='task_a_a',
+            self.exp.run(['host1', 'host2'], '', func_name='task_a_a',
                          args=[12, 'test_1', 'test_2']),
             {'test': 12}
         )
         fabric_api.execute.assert_called_once_with(
             self.exp.module.task_a_a,
-            12, 'test_1', 'test_2'
+            ['host1', 'host2'], 12, 'test_1', 'test_2'
         )
 
         fabric_api.execute = old_fab_execute
 
-    def test_function(self):
-        self.assertFalse(
-            self.exp.run([], '', func_name='a_func')
+    def test_parallel_runner(self):
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
+        self.exp.module.run_a = tasks.ParallelRunner(mock_runner)
+
+        with SettingsMock(self) as settings_mock:
+            self.exp.run([], '', func_name='run_a'),
+            settings_mock.assert_setting('parallel', True)
+
+
+class SettingsMock(object):
+    def __init__(self, test):
+        self.test = test
+        self.logged_settings = {}
+        self.old_fab_settings = None
+
+    def _log_settings(self, **kwargs):
+        for key, value in kwargs.items():
+            self.logged_settings[key] = value
+        return self
+
+    def __enter__(self):
+        self.old_fab_settings = fabric_api.settings
+
+        fabric_api.settings = mock.MagicMock(
+            side_effect=self._log_settings
         )
+        fabric_api.settings.__enter__ = mock.MagicMock()
+        fabric_api.settings.__exit__ = mock.MagicMock(return_value=True)
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        fabric_api.settings = self.old_fab_settings
+
+    def assert_setting(self, key, value):
+        self.test.assertEqual(self.logged_settings[key], value)

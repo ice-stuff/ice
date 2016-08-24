@@ -158,15 +158,16 @@ class Experiment(object):
             )
             return False
 
+        if args is None:
+            args = []
+        elif not isinstance(args, types.ListType):
+            args = [args]
+        args = [hosts]+args
         with fabric_api.settings(hosts=hosts, key_filename=key_filename):
-            if args is None:
-                args = []
-            elif isinstance(args, types.ListType):
-                args = args
-            else:
-                args = [args]
-
-            if isinstance(func, ice.Runner):
+            if isinstance(func, ice.ParallelRunner):
+                with fabric_api.settings(parallel=True):
+                    return func(*args)
+            elif isinstance(func, ice.Runner):
                 return func(*args)
             elif isinstance(func, ice.Task):
                 return fabric_api.execute(func, *args)

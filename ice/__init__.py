@@ -6,7 +6,7 @@ import sys
 # iCE experiment API
 #
 
-from .tasks import Callable, Runner, Task, ParallelTask
+from .tasks import Callable, Runner, ParallelRunner, Task, ParallelTask
 
 #
 # iCE Version
