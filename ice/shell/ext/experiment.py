@@ -125,7 +125,7 @@ class ExperimentShell(ShellExt):
             hosts[inst.get_host_string()] = inst
 
         res = exp.run(hosts.keys(), self.ssh_id_file_path, func_name,
-                      args=[hosts] + args)
+                      args=args)
         if res is False:
             self.logger.error(
                 'Task `%s.%s` failed!' % (experiment_name, func_name)
