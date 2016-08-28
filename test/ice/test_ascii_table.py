@@ -38,7 +38,22 @@ class TestASCIITable(unittest2.TestCase):
         }
         t.add_row(row)
 
-        self.assertEqual(t.rows, [row])
+        self.assertEqual(len(t.rows), 1)
+        self.assertIsInstance(t.rows[0], ascii_table.ASCIITableRow)
+        self.assertEqual(t.rows[0].dict, row)
+
+    def test_add_comment_row(self):
+        t = ascii_table.ASCIITable()
+        col = ascii_table.ASCIITableColumn('Test', 20)
+        t.add_column('test', col)
+
+        t.add_row({'test': 'hello-world'})
+        t.add_comment_row('hello world')
+
+        self.assertEqual(len(t.rows), 2)
+        self.assertIsInstance(t.rows[0], ascii_table.ASCIITableRow)
+        self.assertIsInstance(t.rows[1], ascii_table.ASCIITableRowComment)
+        self.assertEqual(t.rows[1].text, 'hello world')
 
     def test_add_row_with_missing_field(self):
         t = ascii_table.ASCIITable()
@@ -144,5 +159,34 @@ class TestASCIIRenderer(unittest2.TestCase):
 | Column A                    | Column B    |
 ---------------------------------------------
 | hello world #1              |             |
+---------------------------------------------
+""")
+
+    def test_renders_when_comment_row_is_provided(self):
+        table = ascii_table.ASCIITable()
+        table.add_column('col_a', ascii_table.ASCIITableColumn('Column A', 30))
+        table.add_column('col_b', ascii_table.ASCIITableColumn('Column B', 15))
+        table.add_row({
+            'col_a': 'hello #1',
+            'col_b': 'foo #1',
+        })
+        table.add_comment_row('hello world')
+        table.add_row({
+            'col_a': 'foo #2',
+            'col_b': 'hello #2',
+        })
+
+        renderer = ascii_table.ASCIITableRenderer()
+        self.maxDiff = 2500
+        self.assertEqual(
+            renderer.render(table),
+            """---------------------------------------------
+| Column A                    | Column B    |
+---------------------------------------------
+| hello #1                    | foo #1      |
+| ----------------------------------------- |
+| hello world                               |
+| ----------------------------------------- |
+| foo #2                      | hello #2    |
 ---------------------------------------------
 """)

@@ -15,10 +15,13 @@ class ASCIITableRenderer(object):
 
         # Body
         for row in table.rows:
-            out += self._format_row(
-                [row[key] for key in table.col_keys],
-                cols_widths
-            )
+            if isinstance(row, ASCIITableRowComment):
+                out += self._format_row_comment(row.text, total_width)
+            else:
+                out += self._format_row(
+                    [row.dict[key] for key in table.col_keys],
+                    cols_widths
+                )
 
         # Footer
         out += self._format_separator(total_width)
@@ -27,6 +30,17 @@ class ASCIITableRenderer(object):
 
     def _format_separator(self, width):
         return '-' * width + '\n'
+
+    def _format_row_comment(self, text, width):
+        actual_width = width-4
+
+        out = ''
+        out += '| ' + ('-' * actual_width) + ' |\n'
+        form_str = '| {:' + '{:d}'.format(actual_width) + '} |\n'
+        out += form_str.format(text)
+        out += '| ' + ('-' * actual_width) + ' |\n'
+
+        return out
 
     def _format_row(self, values, widths):
         out = ''
@@ -57,13 +71,24 @@ class ASCIITableColumn(object):
         self.width = width
 
 
+class ASCIITableRow(object):
+    def __init__(self, dict):
+        self.dict = dict
+
+
+class ASCIITableRowComment(ASCIITableRow):
+    def __init__(self, text):
+        ASCIITableRow.__init__(self, {})
+        self.text = text
+
+
 class ASCIITable(object):
     def __init__(self):
         # list of strings
         self.col_keys = []
         # list of ASCIITableColumn
         self.cols = []
-        # list of dicts
+        # list of ASCIITableRow
         self.rows = []
 
     def add_column(self, key, col):
@@ -76,13 +101,18 @@ class ASCIITable(object):
         self.col_keys.append(key)
         self.cols.append(col)
 
-    def add_row(self, row):
-        row_keys = row.keys()
-        expected_keys = self.col_keys
-        if set(row_keys) != set(expected_keys):
-            self._find_missing_key(expected_keys, row_keys)
-            self._find_unknown_key(expected_keys, row_keys)
+    def add_comment_row(self, text):
+        row = ASCIITableRowComment(text)
+        self.rows.append(row)
 
+    def add_row(self, dict):
+        dict_keys = dict.keys()
+        expected_keys = self.col_keys
+        if set(dict_keys) != set(expected_keys):
+            self._find_missing_key(expected_keys, dict_keys)
+            self._find_unknown_key(expected_keys, dict_keys)
+
+        row = ASCIITableRow(dict)
         self.rows.append(row)
 
     def _find_missing_key(self, expected_keys, row_keys):
