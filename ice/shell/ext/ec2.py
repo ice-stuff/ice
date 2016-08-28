@@ -119,11 +119,19 @@ class EC2Shell(ShellExt):
         """Lists EC2 instances."""
         reservations = self._get_client(args.cloud_id).get_list()
 
-        instances = []
+        table = self._get_instances_table()
+
         for res in reservations:
+            table.add_comment_row('Resrvation: {:s}'.format(res.id))
             for inst in res.instances:
-                instances.append(inst)
-        self._print_instances(instances)
+                table.add_row({
+                    'id': inst.id,
+                    'instance_type': inst.instance_type,
+                    'ip_address': inst.ip_address,
+                    'state': inst.state
+                })
+
+        self._render_instances_table(table)
 
     def get_create_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_create', add_help=False)
@@ -156,13 +164,23 @@ class EC2Shell(ShellExt):
             self.logger.error('Failed to run instances!')
             return
 
-        self.logger.info('Reservation Id = `{}`'.format(reservation.id))
+        table = self._get_instances_table()
+        table.add_comment_row('Resrvation: {:s}'.format(reservation.id))
+
         for inst in reservation.instances:
             self._instances[inst.id] = {
                 'inst': inst,
                 'cloud_id': args.cloud_id
             }
-        self._print_instances(reservation.instances)
+
+            table.add_row({
+                'id': inst.id,
+                'instance_type': inst.instance_type,
+                'ip_address': inst.ip_address,
+                'state': inst.state
+            })
+
+        self._render_instances_table(table)
 
     def get_wait_parser(self):
         parser = argparse.ArgumentParser(prog='ec2_wait', add_help=False)
@@ -188,11 +206,17 @@ class EC2Shell(ShellExt):
         """Destroys existing EC2 instances."""
         instances = self._get_client(args.cloud_id).destroy(args.instance_ids)
 
+        table = self._get_instances_table()
         for inst in instances:
             if inst.id in self._instances:
                 del self._instances[inst.id]
-
-        self._print_instances(instances)
+            table.add_row({
+                'id': inst.id,
+                'instance_type': inst.instance_type,
+                'ip_address': inst.ip_address,
+                'state': inst.state
+            })
+        self._render_instances_table(table)
 
     def run_release_vms(self):
         """When called, iCE will destroy EC2 VMs on exit."""
@@ -206,11 +230,9 @@ class EC2Shell(ShellExt):
     # Helpers
     #
 
-    def _print_instances(self, instances):
-        """Prints a list of instances.
-        :param list of [boto.ec2.instance.Instance] instances:
-        """
+    def _get_instances_table(self):
         table = ascii_table.ASCIITable()
+
         table.add_column('id', ascii_table.ASCIITableColumn('Id', 23))
         table.add_column('instance_type',
                          ascii_table.ASCIITableColumn('Instance type', 18))
@@ -218,12 +240,7 @@ class EC2Shell(ShellExt):
                          ascii_table.ASCIITableColumn('Public IP', 23))
         table.add_column('state', ascii_table.ASCIITableColumn('State', 16))
 
-        for inst in instances:
-            table.add_row({
-                'id': inst.id,
-                'instance_type': inst.instance_type,
-                'ip_address': inst.ip_address,
-                'state': inst.state
-            })
+        return table
 
+    def _render_instances_table(self, table):
         print ascii_table.ASCIITableRenderer().render(table)
