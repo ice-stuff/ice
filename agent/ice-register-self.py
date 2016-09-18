@@ -32,7 +32,7 @@ import socket
 # Globals
 #
 
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 IS_ROOT = False  # is the user root?
 INSTANCE_ID_PATHS = ['/var/run/ice_instance_id']
 

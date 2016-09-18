@@ -2,6 +2,19 @@
 
 The entries bellow are in reverse chronological order.
 
+## v2.1.0 (WIP)
+
+* `sess_cd`, `sess_release` and `sess_retain` shell commands are promoted and
+  can now be used in normal mode. They were only available in debug mode
+  before.
+* Adopt IPython v5.
+* Adjust all iCE shell output to fit in 80 characters.
+* Add ASCII table helper for experiments.
+* Introduce `ice.ParallelRunner` runner that uses Fabric's parallel execution
+  feature.
+* Experiments receive a list of `entity.Instance` objects instead of a host
+  strings list.
+
 ## v2.0.0 (19 September 2015)
 
 * Radical changes towards and un-opinionated API.

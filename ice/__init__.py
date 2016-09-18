@@ -12,7 +12,7 @@ from .tasks import Callable, Runner, ParallelRunner, Task, ParallelTask
 # iCE Version
 #
 
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 #
 # Configuration directories list
