@@ -18,11 +18,11 @@ setuptools.setup(
 
     # Dependencies
     install_requires=[
-        "eve>=0.4",
-        "IPython>=2.3.0",
-        "requests>=1.2.0",
-        "fabric>=1.10.0",
-        "boto>=2.34.0"
+        "eve>=0.6.4",
+        "fabric>=1.12.0",
+        "boto>=2.42.0",
+        "IPython>=5.1.0",
+        "requests>=2.11.0"
     ],
 
     # Configuration
