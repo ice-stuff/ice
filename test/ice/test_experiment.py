@@ -7,6 +7,7 @@ import tempfile
 
 import fabric.api as fabric_api
 
+from ice import entities
 from ice import experiment
 from ice import tasks
 
@@ -181,6 +182,15 @@ class TestRun(unittest2.TestCase):
             mod_file_path
         )
 
+    def _make_instance(self, ssh_username, hostname):
+        return entities.Instance(
+            session_id='test',
+            public_ip_addr='123.123.123.123',
+            public_reverse_dns=hostname,
+            ssh_username=ssh_username,
+            ssh_authorized_fingerprint='foo'
+        )
+
     def test_not_existing_function(self):
         self.assertFalse(
             self.exp.run([], '', func_name='non_existing')
@@ -195,60 +205,67 @@ class TestRun(unittest2.TestCase):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
+        inst_1 = self._make_instance('user', 'host1')
+        inst_2 = self._make_instance('user', 'host2')
         with SettingsMock(self) as settings_mock:
-            self.exp.run(['host1', 'host2'], 'file.key', func_name='run_a'),
-            settings_mock.assert_setting('hosts', ['host1', 'host2'])
+            self.exp.run([inst_1, inst_2], 'file.key', func_name='run_a'),
+            settings_mock.assert_setting('hosts', ['user@host1', 'user@host2'])
             settings_mock.assert_setting('key_filename', 'file.key')
 
     def test_runner_no_args(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
+        inst = self._make_instance('user', 'host1')
         self.assertEqual(
-            self.exp.run(['host1'], '', func_name='run_a'),
+            self.exp.run([inst], '', func_name='run_a'),
             'runner-return-value'
         )
-        mock_runner.assert_called_once_with(['host1'])
+        mock_runner.assert_called_once_with([inst])
 
     def test_runner_with_args(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
+        inst = self._make_instance('user', 'host1')
         self.assertEqual(
             self.exp.run(
-                ['host1'], '', func_name='run_a',
+                [inst], '', func_name='run_a',
                 args=[12, 'test_1', 'test_2']
             ), 'runner-return-value'
         )
         mock_runner.assert_called_once_with(
-            ['host1'], 12, 'test_1', 'test_2'
+            [inst], 12, 'test_1', 'test_2'
         )
 
     def test_runner_with_dict_arg(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
+        inst = self._make_instance('user', 'host1')
         self.assertEqual(
             self.exp.run(
-                ['host1'], '', func_name='run_a', args={'foo': 'bar'}
+                [inst], '', func_name='run_a', args={'foo': 'bar'}
             ), 'runner-return-value'
         )
         mock_runner.assert_called_once_with(
-            ['host1'], {'foo': 'bar'}
+            [inst], {'foo': 'bar'}
         )
 
     def test_task(self):
         old_fab_execute = fabric_api.execute
         fabric_api.execute = mock.MagicMock(return_value={'test': 12})
 
+        inst_1 = self._make_instance('user', 'host1')
+        inst_2 = self._make_instance('user', 'host2')
         self.assertEqual(
-            self.exp.run(['host1', 'host2'], '', func_name='task_a_a',
+            self.exp.run([inst_1, inst_2], '', func_name='task_a_a',
                          args=[12, 'test_1', 'test_2']),
             {'test': 12}
         )
         fabric_api.execute.assert_called_once_with(
             self.exp.module.task_a_a,
-            ['host1', 'host2'], 12, 'test_1', 'test_2'
+            [inst_1, inst_2], 12, 'test_1', 'test_2'
         )
 
         fabric_api.execute = old_fab_execute

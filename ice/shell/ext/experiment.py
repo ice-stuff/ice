@@ -120,12 +120,10 @@ class ExperimentShell(ShellExt):
         except IndexError:
             func_name = 'run'  # default
 
-        hosts = {}
-        for inst in self.registry.get_instances_list(self.shell.get_session()):
-            hosts[inst.get_host_string()] = inst
-
-        res = exp.run(hosts.keys(), self.ssh_id_file_path, func_name,
-                      args=args)
+        instances = self.registry.get_instances_list(self.shell.get_session())
+        res = exp.run(
+            instances, self.ssh_id_file_path, func_name, args=args
+        )
         if res is False:
             self.logger.error(
                 'Task `%s.%s` failed!' % (experiment_name, func_name)

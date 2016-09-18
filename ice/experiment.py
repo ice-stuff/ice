@@ -132,10 +132,11 @@ class Experiment(object):
         tasks, runners = self.get_contents()
         return runners
 
-    def run(self, hosts, key_filename, func_name='run', args=None):
+    def run(self, instances, key_filename, func_name='run', args=None):
         """Runs a task of runner of the experiment.
 
-        :param list hosts: The list of host strings to run the task against.
+        :param list instances: A list of instances to run the task/runner
+            against.
         :param str key_filename: Path to the SSH private key for accessing
             the hosts.
         :param str func_name: The name of the function (task or runner) to run.
@@ -162,8 +163,10 @@ class Experiment(object):
             args = []
         elif not isinstance(args, types.ListType):
             args = [args]
-        args = [hosts]+args
-        with fabric_api.settings(hosts=hosts, key_filename=key_filename):
+        args = [instances] + args
+        host_strings = [inst.get_host_string() for inst in instances]
+        with fabric_api.settings(hosts=host_strings,
+                                 key_filename=key_filename):
             if isinstance(func, ice.ParallelRunner):
                 with fabric_api.settings(parallel=True):
                     return func(*args)
