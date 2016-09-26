@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+BASE_PATH=$(cd $(dirname $BASH_SOURCE)/.. && pwd)
+
+clean_build() {
+  cd $BASE_PATH
+  rm -Rf build/ dist/ iCE.egg-info
+}
+
+clean_pyc() {
+  find $BASE_PATH -name "*.pyc" -exec rm {} \;
+  find $BASE_PATH -name "*.pyo" -exec rm {} \;
+}
+
+clean_build
+clean_pyc

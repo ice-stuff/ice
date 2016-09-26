@@ -1,9 +1,11 @@
-sudo: false
+sudo: required
+services:
+  - docker
 language: python
 python:
   - "2.7"
 install: "pip install -r dev-requirements.txt"
-script: ./helpers/run-unit-tests
+script: ./hack/run-tests -c
 addons:
   artifacts:
     paths:

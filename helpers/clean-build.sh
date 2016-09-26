@@ -1,5 +1,0 @@
-#!/bin/bash
-BASE_PATH=$(cd $(dirname $BASH_SOURCE)/.. && pwd)
-
-cd $BASE_PATH
-rm -Rf build/ dist/ iCE.egg-info
