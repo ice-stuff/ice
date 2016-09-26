@@ -1,15 +1,13 @@
 import os
 import types
 import unittest2
-import logging
 import mock
 import tempfile
-
 import fabric.api as fabric_api
-
 from ice import entities
 from ice import experiment
 from ice import tasks
+from test.ice.logger import get_logger
 
 
 class TestExperimentConstructor(unittest2.TestCase):
@@ -17,20 +15,22 @@ class TestExperimentConstructor(unittest2.TestCase):
         self.old_exp_load = experiment.Experiment.load
         experiment.Experiment.load = mock.MagicMock()
 
+        self.logger = get_logger('experiment')
+
     def tearDown(self):
         experiment.Experiment.load = self.old_exp_load
 
     def test_file_does_not_exist(self):
         with self.assertRaises(experiment.Experiment.LoadError):
             experiment.Experiment(
-                logging.getLogger('testing'),
+                self.logger,
                 '/path/does/not/exist'
             )
 
     def test_file_is_dir(self):
         with self.assertRaises(experiment.Experiment.LoadError):
             experiment.Experiment(
-                logging.getLogger('testing'),
+                self.logger,
                 tempfile.gettempdir()
             )
 
@@ -39,7 +39,7 @@ class TestExperimentConstructor(unittest2.TestCase):
 
         with self.assertRaises(experiment.Experiment.LoadError):
             experiment.Experiment(
-                logging.getLogger('testing'),
+                self.logger,
                 tmp_file.name
             )
 
@@ -49,7 +49,7 @@ class TestExperimentConstructor(unittest2.TestCase):
         tmp_file = tempfile.NamedTemporaryFile(suffix='.py')
 
         experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             tmp_file.name
         )
         self.assertEqual(experiment.Experiment.load.call_count, 1)
@@ -60,7 +60,7 @@ class TestExperimentConstructor(unittest2.TestCase):
         tmp_file = tempfile.NamedTemporaryFile(suffix='.py')
 
         exp = experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             tmp_file.name
         )
 
@@ -80,11 +80,13 @@ class TestLoad(unittest2.TestCase):
             os.path.join(os.path.dirname(__file__), '..', 'assets')
         )
 
+        self.logger = get_logger('experiment')
+
     def test_load_empty(self):
         tmp_file = tempfile.NamedTemporaryFile(suffix='.py')
 
         exp = experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             tmp_file.name
         )
 
@@ -100,7 +102,7 @@ class TestLoad(unittest2.TestCase):
 
         with self.assertRaises(experiment.Experiment.LoadError):
             experiment.Experiment(
-                logging.getLogger('testing'),
+                self.logger,
                 mod_file_path
             )
 
@@ -108,7 +110,7 @@ class TestLoad(unittest2.TestCase):
         tmp_file = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
 
         exp = experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             tmp_file.name
         )
 
@@ -140,8 +142,10 @@ class TestGetContents(unittest2.TestCase):
             )
         )
 
+        self.logger = get_logger('experiment')
+
         self.exp = experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             mod_file_path
         )
 
@@ -169,6 +173,8 @@ class TestGetContents(unittest2.TestCase):
 
 class TestRun(unittest2.TestCase):
     def setUp(self):
+        self.logger = get_logger('experiment')
+
         # Load placeholder experiment. By doing so, following tests can
         # overwrite functions in this module with mocks.
         mod_file_path = os.path.abspath(
@@ -178,7 +184,7 @@ class TestRun(unittest2.TestCase):
             )
         )
         self.exp = experiment.Experiment(
-            logging.getLogger('testing'),
+            self.logger,
             mod_file_path
         )
 

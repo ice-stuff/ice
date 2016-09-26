@@ -1,9 +1,9 @@
-import logging
 import unittest2
 import mock
-from ice import ec2_client
 from boto import ec2 as boto_ec2
 from boto import exception as boto_exception
+from ice import ec2_client
+from test.ice.logger import get_logger
 
 
 class TestCfgEC2CloudAuth(unittest2.TestCase):
@@ -50,7 +50,7 @@ class TestEC2Client(unittest2.TestCase):
         self.cloud_auth.get_conn = mock.MagicMock(return_value=self.ec2_conn)
 
         self.ec2_client = ec2_client.EC2Client(
-            self.cloud_auth, logging.getLogger('testing')
+            self.cloud_auth, get_logger('ec2')
         )
 
 

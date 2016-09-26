@@ -4,6 +4,9 @@ from requests import exceptions
 import ice
 from ice import entities
 
+ICE_REGISTRATION_SCRIPT_URL = 'https://raw.githubusercontent.com/' + \
+    'glestaris/iCE/master/agent/ice-register-self.py'
+
 
 class CfgRegistryClient(object):
     """Registry client configuration"""
@@ -22,7 +25,6 @@ class RegistryClient:
     VERSION = 'v2'
 
     class APIException(Exception):
-
         def __init__(self, **kwargs):
             self.http_code = kwargs.get('http_code', None)
             self.reason_msg = kwargs.get('reason_msg', None)
@@ -30,6 +32,15 @@ class RegistryClient:
             self.parent = kwargs.get('parent', None)
 
         def __str__(self):
+            if self.http_code == 422:  # validation error
+                iss_msgs = []
+                for key, issue in self.response.json()['_issues'].items():
+                    iss_msgs.append('`{:s}`: {:s}'.format(key, issue))
+                return 'Validation error: ' + ', '.join(iss_msgs)
+            else:
+                return self._get_generic_str()
+
+        def _get_generic_str(self):
             err_parts = []
             if self.http_code is not None:
                 err_parts.append('HTTP error %d' % self.http_code)
@@ -152,11 +163,7 @@ class RegistryClient:
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
-        try:
-            resp = self._call('instances/%s' % inst.id, 'DELETE')
-            return (resp is not None)
-        except RegistryClient.APIException:
-            return False
+        self._call('instances/%s' % inst.id, 'DELETE')
 
     def get_instances_list(self, session=None):
         """
@@ -200,20 +207,24 @@ class RegistryClient:
     #
 
     # TODO: consider splitting this method out of RegistryClient class.
-    def compile_user_data(self, sess, public_reg_host, public_reg_port):
+    def compile_user_data(self, sess, cfg):
         """Compiles the user-data string for new VMs.
 
         :param ice.entities.Session sess: Active iCE session.
-        :param string public_reg_host:
-        :param string public_reg_port:
+        :param ice.registry.client.CfgRegistryClient cfg: iCE client config.
         :rtype: str
         :return: Base64 encoded user data.
         """
-        return """#!/bin/bash
-curl https://raw.githubusercontent.com/glestaris/iCE/master/agent/ice-register-self.py -O ./ice-register-self.py
+        user_data = """#!/bin/bash
+curl {:s} -O ./ice-register-self.py
 chmod +x ./ice-register-self.py
-./ice-register-self.py -a http://{0:s}:{1:d} -s {2:s}
-""".format(public_reg_host, public_reg_port, sess.id)
+""".format(ICE_REGISTRATION_SCRIPT_URL)
+        user_data += './ice-register-self.py' + \
+            ' -a http://{:s}:{:d}'.format(cfg.host, cfg.port) + \
+            ' -s {:s}'.format(sess.id)
+        user_data += '\n'
+
+        return user_data
 
     #
     # Helpers
@@ -285,10 +296,9 @@ chmod +x ./ice-register-self.py
         # Parse response
         if return_raw:
             return resp.text
+        if resp.text == '':
+            return ''
         try:
-            resp_parsed = resp.json()
+            return resp.json()
         except ValueError as err:
-            # Raise parse exception
             raise RegistryClient.APIException(parent=err)
-
-        return resp_parsed

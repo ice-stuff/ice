@@ -44,12 +44,13 @@ class RegistryServer(Eve):
             '/v2/my_ip', 'handle_get_my_ip', self.handle_get_my_ip
         )
 
-    def run(self):
+    def run(self, *args, **kwargs):
         """Run the server."""
         super(RegistryServer, self).run(
             host=self.cfg.host,
             port=self.cfg.port,
-            debug=self.cfg.debug
+            debug=self.cfg.debug,
+            *args, **kwargs
         )
 
     def handle_get_my_ip(self):
