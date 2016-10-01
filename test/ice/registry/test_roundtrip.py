@@ -120,3 +120,31 @@ class TestInstanceLifecycle(ServerTestCase):
 
         recv_inst = self.client.get_instance(inst_id)
         self.assertIsNone(recv_inst)
+
+
+class TestSubmitInstance(ServerTestCase):
+    def setUp(self):
+        ServerTestCase.setUp(self)
+        self.sess = entities.Session(
+            client_ip_addr='127.128.129.130'
+        )
+        self.client.submit_session(self.sess)
+
+    def test_it_validates_ips(self):
+        inst = entities.Instance(
+            session_id=self.sess.id,
+            public_ip_addr='127.x.0.1',
+            public_reverse_dns='localhost',
+            ssh_authorized_fingerprint='banana',
+            tags=['a_tag', 'b_tag']
+        )
+        with self.assertRaisesRegex(
+            RegistryClient.APIException, 'must be of Ip type'
+        ):
+            self.client.submit_instance(inst)
+
+        inst.public_ip_addr = '127.900.0.1'
+        with self.assertRaisesRegex(
+            RegistryClient.APIException, 'must be of Ip type'
+        ):
+            self.client.submit_instance(inst)
