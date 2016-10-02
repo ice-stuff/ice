@@ -8,20 +8,15 @@ from . import ShellExt
 class EC2Shell(ShellExt):
     """Wrapper class for EC2-like cloud related shell commands."""
 
-    def __init__(self, cfg_factory, registry, public_reg_host, public_reg_port,
-                 logger, debug=False):
+    def __init__(self, cfg_factory, registry, logger, debug=False):
         """
         :param ice.config.ConfigFactory cfg_factory:
         :param ice.registry.client.RegistryClient registry:
-        :param string public_reg_host:
-        :param int public_reg_port:
         :param logging.Logger logger:
         :param bool debug: Set to True for debug behaviour.
         """
         self.cfg_factory = cfg_factory
         self.registry = registry
-        self.public_reg_host = public_reg_host
-        self.public_reg_port = public_reg_port
         self.retain_vms = False
         self._instances = {}
         super(EC2Shell, self).__init__(logger, debug)
@@ -154,9 +149,7 @@ class EC2Shell(ShellExt):
             spec.flavor = args.flavor
 
         spec.user_data = self.registry.compile_user_data(
-            self.shell.get_session(),
-            self.public_reg_host,
-            self.public_reg_port
+            self.shell.get_session(), self.cfg_factory.get_registry_client()
         )
 
         reservation = self._get_client(args.cloud_id).create(args.amt, spec)

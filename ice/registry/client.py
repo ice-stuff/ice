@@ -4,8 +4,7 @@ from requests import exceptions
 import ice
 from ice import entities
 
-ICE_REGISTRATION_SCRIPT_URL = 'https://raw.githubusercontent.com/' + \
-    'glestaris/iCE/master/agent/ice-register-self.py'
+ICE_AGENT_URL = 'https://dl.bintray.com/glestaris/iCE/v2.1.0-rc.1/ice-agent'
 
 
 class CfgRegistryClient(object):
@@ -216,12 +215,12 @@ class RegistryClient:
         :return: Base64 encoded user data.
         """
         user_data = """#!/bin/bash
-curl {:s} -O ./ice-register-self.py
-chmod +x ./ice-register-self.py
-""".format(ICE_REGISTRATION_SCRIPT_URL)
-        user_data += './ice-register-self.py' + \
-            ' -a http://{:s}:{:d}'.format(cfg.host, cfg.port) + \
-            ' -s {:s}'.format(sess.id)
+curl -L {:s} -O ./ice-agent
+chmod +x ./ice-agent
+""".format(ICE_AGENT_URL)
+        user_data += './ice-agent register-self' + \
+            ' --api-endpoint http://{:s}:{:d}'.format(cfg.host, cfg.port) + \
+            ' --session-id {:s}'.format(sess.id)
         user_data += '\n'
 
         return user_data

@@ -14,6 +14,8 @@ The entries bellow are in reverse chronological order.
   feature.
 * Experiments receive a list of `entity.Instance` objects instead of a host
   strings list.
+* Replace the awkward `./ice-register-self.py` script with the `ice-agent`
+  project maintained in https://github.com/glestaris/ice-agent.
 
 ## v2.0.0 (19 September 2015)
 

@@ -37,9 +37,12 @@ joined the instances pool.
 Following lines in Bash, register an instance to iCE:
 
 ```bash
-curl http://bit.ly/ice-agent -O ./ice-register-self.py
-chmod +x ./ice-register-self.py
-./ice-register-self.py -a <iCE server URL> -s <Session id>
+curl -L https://dl.bintray.com/glestaris/iCE/v2.1.0-rc.1/ice-agent \
+	-O ./ice-agent
+chmod +x ./ice-agent
+./ice-agent register-self \
+	--api-endpoint <iCE server URL> \
+	--session-id <Session id>
 ```
 
 The *iCE server URL* is the URL of the iCE server (e.g.:

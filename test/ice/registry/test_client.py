@@ -15,11 +15,12 @@ class TestCompileUserData(unittest2.TestCase):
             ),
             client.CfgRegistryClient('public.ice.registry', 1234)
         )
-        self.assertEquals(
-            user_data,
-            """#!/bin/bash
-curl {:s} -O ./ice-register-self.py
-chmod +x ./ice-register-self.py
-./ice-register-self.py -a http://public.ice.registry:1234 -s 1234abcd
-""".format(client.ICE_REGISTRATION_SCRIPT_URL)
-        )
+        expected_user_data = """#!/bin/bash
+curl -L {:s} -O ./ice-agent
+chmod +x ./ice-agent
+""".format(client.ICE_AGENT_URL)
+        expected_user_data += './ice-agent register-self' + \
+            ' --api-endpoint http://public.ice.registry:1234' + \
+            ' --session-id 1234abcd'
+        expected_user_data += '\n'
+        self.assertEquals(user_data, expected_user_data)
