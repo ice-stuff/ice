@@ -70,17 +70,7 @@ class Instance(Entity):
     :type public_reverse_dns: str
     :type ssh_username: str
     :type ssh_authorized_fingerprint: str
-    :type failed_pings_count: int
-    :type status: str
     """
-    #
-    # Status attribute values
-    #
-
-    STATUS_UNKNOWN = 'unknown'
-    STATUS_RUNNING = 'running'
-    STATUS_UNREACHABLE = 'unreachable'
-    STATUS_BANNED = 'banned'
 
     #
     # Constructor
@@ -111,10 +101,6 @@ class Instance(Entity):
         # SSH options
         self.ssh_username = kwargs.get('ssh_username', 'root')
         self.ssh_authorized_fingerprint = kwargs['ssh_authorized_fingerprint']
-
-        # Instance status
-        self.failed_pings_count = 0
-        self.status = Instance.STATUS_RUNNING
 
     #
     # Setters

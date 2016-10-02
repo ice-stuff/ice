@@ -61,17 +61,5 @@ class InstancesDomain(Domain):
             'ssh_authorized_fingerprint': {
                 'required': True,
                 'type': 'string'
-            },
-
-            # Status
-            'status': {
-                'required': False,
-                'type': 'string',
-                'default': 'running'
-            },
-            'failed_pings_count': {
-                'required': False,
-                'type': 'integer',
-                'default': 0
             }
         }
