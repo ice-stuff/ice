@@ -51,18 +51,22 @@ class RegistryShell(ShellExt):
 
         self.logger.info('Found %d instances' % len(inst_list))
         table = ascii_table.ASCIITable()
-        table.add_column('id', ascii_table.ASCIITableColumn('Id', 27))
+        table.add_column('id', ascii_table.ASCIITableColumn('Id', 28))
         table.add_column('public_ip_addr',
-                         ascii_table.ASCIITableColumn('Public IP', 23))
-        table.add_column('cloud_id',
-                         ascii_table.ASCIITableColumn('Cloud Id', 30))
+                         ascii_table.ASCIITableColumn('Public IP', 26))
+        table.add_column('private_ip_addr',
+                         ascii_table.ASCIITableColumn('Private IP', 26))
 
         for inst in inst_list:
-            table.add_row({
+            row = {
                 'id': inst.id,
                 'public_ip_addr': inst.public_ip_addr,
-                'cloud_id': inst.cloud_id
-            })
+                'private_ip_addr': ''
+            }
+            for net in inst.networks:
+                if net['iface'] == 'eth0':
+                    row['private_ip_addr'] = net['addr']
+            table.add_row(row)
 
         print ascii_table.ASCIITableRenderer().render(table)
 
