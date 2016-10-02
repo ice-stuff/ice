@@ -1,5 +1,6 @@
 """iCE entities."""
 
+
 #
 # Base entity class
 #
@@ -67,8 +68,6 @@ class Instance(Entity):
     :type networks: list
     :type public_ip_addr: str
     :type public_reverse_dns: str
-    :type cloud_id: str
-    :type vpc_id: str
     :type ssh_username: str
     :type ssh_authorized_fingerprint: str
     :type failed_pings_count: int
@@ -108,10 +107,6 @@ class Instance(Entity):
         # Public network
         self.public_ip_addr = kwargs['public_ip_addr']
         self.public_reverse_dns = kwargs['public_reverse_dns']
-
-        # Cloud info
-        self.cloud_id = kwargs.get('cloud_id', None)
-        self.vpc_id = kwargs.get('vpc_id', None)
 
         # SSH options
         self.ssh_username = kwargs.get('ssh_username', 'root')

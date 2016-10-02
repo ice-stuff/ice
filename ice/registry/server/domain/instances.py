@@ -52,16 +52,6 @@ class InstancesDomain(Domain):
                 'type': 'string'
             },
 
-            # Cloud info
-            'cloud_id': {
-                'required': False,
-                'type': 'url'
-            },
-            'vpc_id': {
-                'required': False,
-                'type': 'string'
-            },
-
             # SSH options
             'ssh_username': {
                 'required': False,
