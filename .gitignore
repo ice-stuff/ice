@@ -7,15 +7,9 @@
 *.pyc
 *.pyo
 
-# Local configuration
-temp
-config/local/*
-
 # IDE
-.idea
-.ropeproject
+/.ropeproject
 
 # Coverage
-.coverage
-coveragereport
-
+/.coverage
+/coveragereport
