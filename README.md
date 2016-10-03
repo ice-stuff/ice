@@ -1,8 +1,8 @@
 # iCE: Interactive cloud experimentation tool
 
-[![Build Status](https://travis-ci.org/glestaris/ice.svg?branch=master)](https://travis-ci.org/glestaris/ice)
+[![Build Status](https://travis-ci.org/ice-stuff/ice.svg?branch=master)](https://travis-ci.org/ice-stuff/ice)
 
-[Docs](https://github.com/glestaris/iCE/wiki)
+[Docs](https://github.com/ice-stuff/ice-docs)
 
 iCE is a tool that aims to run experiments (interactively) on dynamic cloud
 resources. iCE takes no assumptions on how many are the available VMs (pool),
