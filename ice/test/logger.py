@@ -2,7 +2,7 @@ import os
 import logging
 
 
-def get_logger(name):
+def get_dummy_logger(name):
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.INFO)

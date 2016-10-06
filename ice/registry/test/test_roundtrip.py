@@ -8,7 +8,7 @@ from ice.registry.server import RegistryServer
 from ice.registry.server.domain.instances import InstancesDomain
 from ice.registry.server.domain.sessions import SessionsDomain
 from ice.registry.server.config import CfgRegistryServer
-from test.ice.logger import get_logger
+from ice.test.logger import get_dummy_logger
 
 
 class ServerThread(threading.Thread):
@@ -34,7 +34,7 @@ class ServerTestCase(unittest2.TestCase):
             mongo_db=mongo_db
         )
 
-        logger = get_logger('ice-registry-server')
+        logger = get_dummy_logger('ice-registry-server')
 
         self.server = RegistryServer(
             cfg,

@@ -7,7 +7,13 @@ import fabric.api as fabric_api
 from ice import entities
 from ice import experiment
 from ice import tasks
-from test.ice.logger import get_logger
+from ice.test.logger import get_dummy_logger
+
+ASSETS_PATH = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__), '..', '..', 'testing', 'assets'
+    )
+)
 
 
 class TestExperimentConstructor(unittest2.TestCase):
@@ -15,7 +21,7 @@ class TestExperimentConstructor(unittest2.TestCase):
         self.old_exp_load = experiment.Experiment.load
         experiment.Experiment.load = mock.MagicMock()
 
-        self.logger = get_logger('experiment')
+        self.logger = get_dummy_logger('experiment')
 
     def tearDown(self):
         experiment.Experiment.load = self.old_exp_load
@@ -76,11 +82,7 @@ class TestExperimentConstructor(unittest2.TestCase):
 
 class TestLoad(unittest2.TestCase):
     def setUp(self):
-        self.assets_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..', 'assets')
-        )
-
-        self.logger = get_logger('experiment')
+        self.logger = get_dummy_logger('experiment')
 
     def test_load_empty(self):
         tmp_file = tempfile.NamedTemporaryFile(suffix='.py')
@@ -98,7 +100,7 @@ class TestLoad(unittest2.TestCase):
         tmp_file.close()
 
     def test_load_syntax_error(self):
-        mod_file_path = os.path.join(self.assets_path, 'exp_syntax_error.py')
+        mod_file_path = os.path.join(ASSETS_PATH, 'exp_syntax_error.py')
 
         with self.assertRaises(experiment.Experiment.LoadError):
             experiment.Experiment(
@@ -136,13 +138,10 @@ class TestLoad(unittest2.TestCase):
 class TestGetContents(unittest2.TestCase):
     def setUp(self):
         mod_file_path = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__), '..', 'assets',
-                'exp_normal.py'
-            )
+            os.path.join(ASSETS_PATH, 'exp_normal.py')
         )
 
-        self.logger = get_logger('experiment')
+        self.logger = get_dummy_logger('experiment')
 
         self.exp = experiment.Experiment(
             self.logger,
@@ -173,15 +172,12 @@ class TestGetContents(unittest2.TestCase):
 
 class TestRun(unittest2.TestCase):
     def setUp(self):
-        self.logger = get_logger('experiment')
+        self.logger = get_dummy_logger('experiment')
 
         # Load placeholder experiment. By doing so, following tests can
         # overwrite functions in this module with mocks.
         mod_file_path = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__), '..', 'assets',
-                'exp_normal.py'
-            )
+            os.path.join(ASSETS_PATH, 'exp_normal.py')
         )
         self.exp = experiment.Experiment(
             self.logger,
