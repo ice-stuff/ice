@@ -1,51 +1,35 @@
-# iCE: Interactive cloud experimentation tool
-
 [![Build Status](https://travis-ci.org/ice-stuff/ice.svg?branch=master)](https://travis-ci.org/ice-stuff/ice)
 
-[Docs](https://github.com/ice-stuff/ice-docs)
+# iCE: Interactive cloud experimentation tool
 
-iCE is a tool that aims to run experiments (interactively) on dynamic cloud
-resources. iCE takes no assumptions on how many are the available VMs (pool),
-where are these VMs located and what is going to run on them.
+iCE is a tool that aims to interactively run experiments on a dynamic list of
+cloud instances (VMs or containers).  iCE takes no assumptions on how many are
+the available instances are, where are these instances located and what is
+going to run on them.
 
-iCE is composed of three main parts. The first is the **iCE server**,
-an HTTP server that is hosting the database of instances. This database is
-changing rapidly as VMs terminate (leave the pool) or boot (join the pool).
+iCE is composed of three main parts. The first is the **iCE registry**, an HTTP
+server that is hosting the database of instances. This database is changing
+rapidly as instances terminate (leave the pool) or boot (join the pool).
 
-The second component, is the the **iCE agent**, a small program that
-runs once on a cloud VM, in order to register it to the iCE server. A VM
-that is registered to iCE is also referred to as iCE instance. Usually the
-iCE agent is automatically invoked after a VM boots successfully.
+The second component the **iCE agent** is a small program that runs on a
+cloud instance and takes care of registering it to the iCE registry. For
+instances created through iCE's integration with EC2, the iCE agent runs
+automatically on instance boot.
 
-The third component is the **iCE client**. The client is a set of
-services that enable experimentation on registered instances. These services
-can be used interactively with the **iCE shell**, or programmatically
-through the **iCE client Python API**.
+The third component is the **iCE client**. The client is a set of services that
+enable experimentation on the registered instances. These services can be used
+interactively with the **iCE shell**, or programmatically through the **iCE
+client Python API**.
 
-An **experiment** is a standard Python file, that defines two types of
-**actions**, accessible through \ice. These are the **iCE runners**
-and  the **iCE tasks**. These action are executed for each VM that has
-joined the instances pool.
+An **experiment** is a standard Python file that defines two types of
+**actions**. These are the **iCE runners** and  the **iCE tasks**. When these
+actions are invoked from an iCE client (shell or Python API) they run against
+every instance that has joined the instances pool.
 
-## Examples
+## Repositories
 
-* `experiments/simple.py` A very simple experiment that just gets the FQDN host
-    names of the iCE instances.
+This repository defines the iCE API and includes the core functionality, as
+well as, the iCE registry. The other components can be found in:
 
-## Instance registration
-
-Following lines in Bash, register an instance to iCE:
-
-```bash
-curl -L https://dl.bintray.com/glestaris/iCE/v2.1.0-rc.1/ice-agent \
-	-O ./ice-agent
-chmod +x ./ice-agent
-./ice-agent register-self \
-	--api-endpoint <iCE server URL> \
-	--session-id <Session id>
-```
-
-The *iCE server URL* is the URL of the iCE server (e.g.:
-`http://ice.example.org:8080`). THe session id, identifies a unique iCE
-session. It can be obtained when starting the iCE shell, or through the
-iCE client Python API.
+* [iCE Shell client](https://github.com/ice-stuff/ice-shell)
+* [iCE agent](https://github.com/ice-stuff/ice-agent)
