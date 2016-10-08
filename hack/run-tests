@@ -28,7 +28,7 @@ run_nose() {
     cmd=$cmd" --cover-erase"
     cmd=$cmd" --cover-html-dir coveragereport"
   fi
-  cmd=$cmd" -v"
+  [ $DEBUG -eq 1 ] && cmd=$cmd" -v"
   [ "$MODULE" != "" ] && cmd=$cmd" $MODULE"
 
   # envars
