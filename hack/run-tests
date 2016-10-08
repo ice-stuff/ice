@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
+BASE_PATH=$(cd $(dirname $BASH_SOURCE)/..; pwd)
+source $BASE_PATH/hack/message_printing.sh
 
 usage() {
   echo "Usage:"
@@ -11,9 +13,9 @@ usage() {
 }
 
 setup() {
-  echo "[INFO] Starting MongoDB Docker container"
+  info "Starting MongoDB Docker container"
   DOCKER_CONTAINER_ID=$(docker run -d --name test-ice-mongo -p 12222:27017 mongo)
-  echo "[INFO] Container is '$DOCKER_CONTAINER_ID'"
+  info "Container is '$DOCKER_CONTAINER_ID'"
 }
 
 run_nose() {
@@ -31,29 +33,29 @@ run_nose() {
 
   # envars
   export TEST_ICE_MONGO_PORT=12222
-  [ $VERBOSE -eq 1 ] && export TEST_ICE_DEBUG=1
+  [ $DEBUG -eq 1 ] && export TEST_ICE_DEBUG=1
 
-  echo "[INFO] About to run '$cmd'"
+  info "About to run '$cmd'"
 
   # run tests but don't blow up
-  echo "--------- Nose output START ---------"
+  info "--------- Nose output START ---------"
   set +e
   eval $cmd
-  NOSE_EXIT_CODE=$?
+  TESTS_EXIT_CODE=$?
   set -e
-  echo "--------- Nose output END ---------"
+  info "--------- Nose output END ---------"
 
-  echo "[INFO] Nose exited with code $NOSE_EXIT_CODE"
+  info "Nose exited with code $TESTS_EXIT_CODE"
 }
 
 teardown() {
-  echo "[INFO] Removing MongoDB Docker container"
+  info "Removing MongoDB Docker container"
   docker rm -f test-ice-mongo > /dev/null
-  echo "[INFO] The Docker container got cleaned up!"
+  info "The Docker container got cleaned up!"
 }
 
+DEBUG=0
 MODULE=""
-VERBOSE=0
 WITH_COVERAGE=0
 while getopts "m:cvh" OPTION
 do
@@ -65,7 +67,7 @@ do
       WITH_COVERAGE=1
       ;;
     v)
-      VERBOSE=1
+      DEBUG=1
       ;;
     h)
       usage
@@ -78,13 +80,14 @@ do
   esac
 done
 
-echo "[DEBUG] module='$MODULE'"
-echo "[DEBUG] with_coverage=$WITH_COVERAGE"
-echo "[DEBUG] verbose=$VERBOSE"
+debug "run_integration=$RUN_INTEGRATION"
+debug "module='$MODULE'"
+debug "with_coverage=$WITH_COVERAGE"
+debug "verbose=$DEBUG"
 
 # some action...
 setup
 run_nose
 teardown
 
-exit $NOSE_EXIT_CODE
+exit $TESTS_EXIT_CODE
