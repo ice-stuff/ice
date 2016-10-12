@@ -15,8 +15,8 @@ class TestCompileUserData(unittest2.TestCase):
             ),
             client.CfgRegistryClient('public.ice.registry', 1234)
         )
-        expected_user_data = """#!/bin/bash
-curl -L {:s} -O ./ice-agent
+        expected_user_data = """#!/bin/sh -ex
+wget {:s} -O ./ice-agent
 chmod +x ./ice-agent
 """.format(client.ICE_AGENT_URL)
         expected_user_data += './ice-agent register-self' + \

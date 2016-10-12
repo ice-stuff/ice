@@ -213,8 +213,8 @@ class RegistryClient:
         :rtype: str
         :return: Base64 encoded user data.
         """
-        user_data = """#!/bin/bash
-curl -L {:s} -O ./ice-agent
+        user_data = """#!/bin/sh -ex
+wget {:s} -O ./ice-agent
 chmod +x ./ice-agent
 """.format(ICE_AGENT_URL)
         user_data += './ice-agent register-self' + \
