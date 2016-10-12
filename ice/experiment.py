@@ -6,6 +6,19 @@ from fabric import api as fabric_api
 import ice
 
 
+class CfgSSH(object):
+    """SSH configuration for the experiment runner"""
+
+    def __init__(self, username, key_path):
+        """Creates an SSH configuration obkect.
+
+        :param str username: The SSH username.
+        :param str key_path: Path to the private SSH key.
+        """
+        self.username = username
+        self.key_path = key_path
+
+
 class Experiment(object):
     """Experiment class.
 
@@ -132,13 +145,12 @@ class Experiment(object):
         tasks, runners = self.get_contents()
         return runners
 
-    def run(self, instances, key_filename, func_name='run', args=None):
+    def run(self, instances, ssh_cfg, func_name='run', args=None):
         """Runs a task of runner of the experiment.
 
         :param list instances: A list of instances to run the task/runner
             against.
-        :param str key_filename: Path to the SSH private key for accessing
-            the hosts.
+        :param ice.experiment.CfgSSH ssh_cfg: SSH client configuration.
         :param str func_name: The name of the function (task or runner) to run.
         :param list args: List of arguments to pass
         :rtype: mixed
@@ -164,9 +176,11 @@ class Experiment(object):
         elif not isinstance(args, types.ListType):
             args = [args]
         args = [instances] + args
-        host_strings = [inst.get_host_string() for inst in instances]
+        host_strings = [
+            self._get_host_string(ssh_cfg, inst) for inst in instances
+        ]
         with fabric_api.settings(hosts=host_strings,
-                                 key_filename=key_filename):
+                                 key_filename=ssh_cfg.key_path):
             if isinstance(func, ice.ParallelRunner):
                 with fabric_api.settings(parallel=True):
                     return func(*args)
@@ -174,3 +188,6 @@ class Experiment(object):
                 return func(*args)
             elif isinstance(func, ice.Task):
                 return fabric_api.execute(func, *args)
+
+    def _get_host_string(self, ssh_cfg, inst):
+        return '{:s}@{:s}'.format(ssh_cfg.username, inst.public_reverse_dns)

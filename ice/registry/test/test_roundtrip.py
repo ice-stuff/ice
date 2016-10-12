@@ -91,8 +91,7 @@ class TestInstanceLifecycle(ServerTestCase):
         self.inst = entities.Instance(
             session_id=self.sess.id,
             public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana'
+            public_reverse_dns='localhost'
         )
 
     def test_submit_instance(self):
@@ -135,7 +134,6 @@ class TestSubmitInstance(ServerTestCase):
             session_id=self.sess.id,
             public_ip_addr='127.x.0.1',
             public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana',
             tags=['a_tag', 'b_tag']
         )
         with self.assertRaisesRegex(

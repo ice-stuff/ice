@@ -55,11 +55,10 @@ class InstancesDomain(Domain):
             # SSH options
             'ssh_username': {
                 'required': False,
-                'type': 'string',
-                'default': 'root'
+                'type': 'string'
             },
             'ssh_authorized_fingerprint': {
-                'required': True,
+                'required': False,
                 'type': 'string'
             }
         }

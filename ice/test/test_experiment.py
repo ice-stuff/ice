@@ -173,6 +173,7 @@ class TestGetContents(unittest2.TestCase):
 class TestRun(unittest2.TestCase):
     def setUp(self):
         self.logger = get_dummy_logger('experiment')
+        self.ssh_cfg = experiment.CfgSSH('ice', '/path/to/id_rsa')
 
         # Load placeholder experiment. By doing so, following tests can
         # overwrite functions in this module with mocks.
@@ -184,43 +185,41 @@ class TestRun(unittest2.TestCase):
             mod_file_path
         )
 
-    def _make_instance(self, ssh_username, hostname):
+    def _make_instance(self, hostname):
         return entities.Instance(
             session_id='test',
             public_ip_addr='123.123.123.123',
-            public_reverse_dns=hostname,
-            ssh_username=ssh_username,
-            ssh_authorized_fingerprint='foo'
+            public_reverse_dns=hostname
         )
 
     def test_not_existing_function(self):
         self.assertFalse(
-            self.exp.run([], '', func_name='non_existing')
+            self.exp.run([], self.ssh_cfg, func_name='non_existing')
         )
 
     def test_not_callable(self):
         self.assertFalse(
-            self.exp.run([], '', func_name='a_func')
+            self.exp.run([], self.ssh_cfg, func_name='a_func')
         )
 
     def test_fabric_settings(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
-        inst_1 = self._make_instance('user', 'host1')
-        inst_2 = self._make_instance('user', 'host2')
+        inst_1 = self._make_instance('host1')
+        inst_2 = self._make_instance('host2')
         with SettingsMock(self) as settings_mock:
-            self.exp.run([inst_1, inst_2], 'file.key', func_name='run_a'),
-            settings_mock.assert_setting('hosts', ['user@host1', 'user@host2'])
-            settings_mock.assert_setting('key_filename', 'file.key')
+            self.exp.run([inst_1, inst_2], self.ssh_cfg, func_name='run_a'),
+            settings_mock.assert_setting('hosts', ['ice@host1', 'ice@host2'])
+            settings_mock.assert_setting('key_filename', '/path/to/id_rsa')
 
     def test_runner_no_args(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
-        inst = self._make_instance('user', 'host1')
+        inst = self._make_instance('host1')
         self.assertEqual(
-            self.exp.run([inst], '', func_name='run_a'),
+            self.exp.run([inst], self.ssh_cfg, func_name='run_a'),
             'runner-return-value'
         )
         mock_runner.assert_called_once_with([inst])
@@ -229,10 +228,10 @@ class TestRun(unittest2.TestCase):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
-        inst = self._make_instance('user', 'host1')
+        inst = self._make_instance('host1')
         self.assertEqual(
             self.exp.run(
-                [inst], '', func_name='run_a',
+                [inst], self.ssh_cfg, func_name='run_a',
                 args=[12, 'test_1', 'test_2']
             ), 'runner-return-value'
         )
@@ -244,10 +243,10 @@ class TestRun(unittest2.TestCase):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)
 
-        inst = self._make_instance('user', 'host1')
+        inst = self._make_instance('host1')
         self.assertEqual(
             self.exp.run(
-                [inst], '', func_name='run_a', args={'foo': 'bar'}
+                [inst], self.ssh_cfg, func_name='run_a', args={'foo': 'bar'}
             ), 'runner-return-value'
         )
         mock_runner.assert_called_once_with(
@@ -258,10 +257,10 @@ class TestRun(unittest2.TestCase):
         old_fab_execute = fabric_api.execute
         fabric_api.execute = mock.MagicMock(return_value={'test': 12})
 
-        inst_1 = self._make_instance('user', 'host1')
-        inst_2 = self._make_instance('user', 'host2')
+        inst_1 = self._make_instance('host1')
+        inst_2 = self._make_instance('host2')
         self.assertEqual(
-            self.exp.run([inst_1, inst_2], '', func_name='task_a_a',
+            self.exp.run([inst_1, inst_2], self.ssh_cfg, func_name='task_a_a',
                          args=[12, 'test_1', 'test_2']),
             {'test': 12}
         )
@@ -277,7 +276,7 @@ class TestRun(unittest2.TestCase):
         self.exp.module.run_a = tasks.ParallelRunner(mock_runner)
 
         with SettingsMock(self) as settings_mock:
-            self.exp.run([], '', func_name='run_a'),
+            self.exp.run([], self.ssh_cfg, func_name='run_a'),
             settings_mock.assert_setting('parallel', True)
 
 

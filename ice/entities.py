@@ -99,8 +99,10 @@ class Instance(Entity):
         self.public_reverse_dns = kwargs['public_reverse_dns']
 
         # SSH options
-        self.ssh_username = kwargs.get('ssh_username', 'root')
-        self.ssh_authorized_fingerprint = kwargs['ssh_authorized_fingerprint']
+        self.ssh_username = kwargs.get('ssh_username', '')
+        self.ssh_authorized_fingerprint = kwargs.get(
+            'ssh_authorized_fingerprint', ''
+        )
 
     #
     # Setters
@@ -122,14 +124,3 @@ class Instance(Entity):
         if bcast_addr is not None:
             my_net['bcast_addr'] = bcast_addr
         self.networks.append(my_net)
-
-    #
-    # Host string
-    #
-
-    def get_host_string(self):
-        """Generates the host string for SSH.
-        :rtype: str
-        :return: The SSH host string.
-        """
-        return '{0.ssh_username:s}@{0.public_reverse_dns:s}'.format(self)

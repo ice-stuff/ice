@@ -44,48 +44,35 @@ class TestInstance(unittest2.TestCase):
         with self.assertRaises(KeyError):
             entities.Instance(
                 public_ip_addr='127.0.0.1',
-                public_reverse_dns='localhost',
-                ssh_authorized_fingerprint='banana'
+                public_reverse_dns='localhost'
             )
 
     def test_with_missing_ip_addr(self):
         with self.assertRaises(KeyError):
             entities.Instance(
                 session_id='banana',
-                public_reverse_dns='localhost',
-                ssh_authorized_fingerprint='banana'
+                public_reverse_dns='localhost'
             )
 
     def test_with_missing_ip_reverse_dns(self):
         with self.assertRaises(KeyError):
             entities.Instance(
                 session_id='banana',
-                public_ip_addr='127.0.0.1',
-                ssh_authorized_fingerprint='banana'
-            )
-
-    def test_with_missing_ssh_authroized_fingerprint(self):
-        with self.assertRaises(KeyError):
-            entities.Instance(
-                session_id='banana',
-                public_ip_addr='127.0.0.1',
-                public_reverse_dns='localhost'
+                public_ip_addr='127.0.0.1'
             )
 
     def test_mantadory_fields(self):
         entities.Instance(
             session_id='banana',
             public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana'
+            public_reverse_dns='localhost'
         )
 
     def test_add_network(self):
         entityA = entities.Instance(
             session_id='banana',
             public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana'
+            public_reverse_dns='localhost'
         )
         entityA.add_network('192.168.1.12', iface='eth0',
                             bcast_addr='192.168.1.255')
@@ -96,7 +83,6 @@ class TestInstance(unittest2.TestCase):
             session_id='banana',
             public_ip_addr='127.0.0.1',
             public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana',
             networks=[
                 {
                     'addr': '192.168.1.12',
@@ -114,14 +100,3 @@ class TestInstance(unittest2.TestCase):
         )
 
         self.assertEqual(entityA.networks, entityB.networks)
-
-    def test_get_host_string(self):
-        entity = entities.Instance(
-            session_id='banana',
-            public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost',
-            ssh_authorized_fingerprint='banana'
-        )
-        entity.ssh_username = 'banana'
-
-        self.assertEqual(entity.get_host_string(), 'banana@localhost')
