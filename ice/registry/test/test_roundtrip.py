@@ -3,7 +3,7 @@ import unittest2
 import random
 import threading
 from ice import entities
-from ice.registry.client import RegistryClient
+from ice.registry.client import RegistryClient, CfgRegistryClient
 from ice.registry.server import RegistryServer
 from ice.registry.server.domain.instances import InstancesDomain
 from ice.registry.server.domain.sessions import SessionsDomain
@@ -46,7 +46,7 @@ class ServerTestCase(unittest2.TestCase):
         self.thread.daemon = True
         self.thread.start()
 
-        self.client = RegistryClient('localhost', self.port)
+        self.client = RegistryClient(CfgRegistryClient('localhost', self.port))
 
 
 class TestMyIP(ServerTestCase):

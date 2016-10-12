@@ -6,7 +6,7 @@ from ice.registry import client
 class TestCompileUserData(unittest2.TestCase):
     def test(self):
         # client will not try to connect to the endpoint
-        c = client.RegistryClient('localhost', 8080)
+        c = client.RegistryClient(client.CfgRegistryClient('localhost', 8080))
 
         user_data = c.compile_user_data(
             entities.Session(

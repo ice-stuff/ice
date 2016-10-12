@@ -55,9 +55,8 @@ class RegistryClient:
                 err_parts.append(str(self.parent))
             return ', '.join(err_parts)
 
-    def __init__(self, hostname='localhost', port=5000):
-        self.hostname = hostname
-        self.port = port
+    def __init__(self, cfg):
+        self.cfg = cfg
 
     #
     # Getting IP address
@@ -237,13 +236,13 @@ chmod +x ./ice-agent
         :rtype: str
         :return: The full URL.
         """
-        if self.port == 443:
+        if self.cfg.port == 443:
             url = 'https://'
         else:
             url = 'http://'
-        url += self.hostname
-        if self.port != 80 and self.port != 443:
-            url += ':%d' % self.port
+        url += self.cfg.host
+        if self.cfg.port != 80 and self.cfg.port != 443:
+            url += ':%d' % self.cfg.port
         url += '/%s/%s' % (self.VERSION, suffix)
         return url
 
