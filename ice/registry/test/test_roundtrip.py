@@ -47,6 +47,7 @@ class ServerTestCase(unittest2.TestCase):
         self.thread.start()
 
         self.client = RegistryClient(CfgRegistryClient('localhost', self.port))
+        self.client.ping_with_retries(10)
 
 
 class TestMyIP(ServerTestCase):

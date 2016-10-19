@@ -1,6 +1,7 @@
 import json
 import requests
 from requests import exceptions
+import redo
 import ice
 from ice import entities
 
@@ -61,6 +62,31 @@ class RegistryClient:
     #
     # Getting IP address
     #
+
+    def ping(self):
+        """
+        Pings the server.
+
+        :rtype: bool
+        :return: True if the server responds and False otherwise.
+        """
+        try:
+            self._call('', return_raw=True)
+            return True
+        except RegistryClient.APIException:
+            return False
+
+    def ping_with_retries(self, attempts):
+        retrier_kwargs = {
+            'attempts': attempts,
+            'sleeptime': 0.3,
+            'jitter': 0
+        }
+        for _ in redo.retrier(**retrier_kwargs):
+            if self.ping():
+                return True
+
+        return False
 
     def get_my_ip(self):
         """

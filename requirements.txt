@@ -4,3 +4,4 @@ Eve>=0.6.4
 Fabric>=1.12.0
 boto>=2.42.0
 requests>=2.11.1
+redo>=1.5

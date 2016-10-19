@@ -1,4 +1,3 @@
-import os
 import setuptools
 
 setuptools.setup(
@@ -17,6 +16,7 @@ setuptools.setup(
         'eve>=0.6.4',
         'fabric>=1.12.0',
         'boto>=2.42.0',
-        'requests>=2.11.0'
+        'requests>=2.11.0',
+        'redo>=1.5'
     ]
 )
