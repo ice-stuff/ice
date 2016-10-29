@@ -96,7 +96,7 @@ class Instance(Entity):
 
         # Public network
         self.public_ip_addr = kwargs['public_ip_addr']
-        self.public_reverse_dns = kwargs['public_reverse_dns']
+        self.public_reverse_dns = kwargs.get('public_reverse_dns', '')
 
         # SSH options
         self.ssh_username = kwargs.get('ssh_username', '')

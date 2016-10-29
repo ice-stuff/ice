@@ -48,7 +48,7 @@ class InstancesDomain(Domain):
                 'type': 'ip'
             },
             'public_reverse_dns': {
-                'required': True,
+                'required': False,
                 'type': 'string'
             },
 

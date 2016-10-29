@@ -43,36 +43,25 @@ class TestInstance(unittest2.TestCase):
     def test_with_missing_session_id(self):
         with self.assertRaises(KeyError):
             entities.Instance(
-                public_ip_addr='127.0.0.1',
-                public_reverse_dns='localhost'
+                public_ip_addr='127.0.0.1'
             )
 
     def test_with_missing_ip_addr(self):
         with self.assertRaises(KeyError):
             entities.Instance(
-                session_id='banana',
-                public_reverse_dns='localhost'
-            )
-
-    def test_with_missing_ip_reverse_dns(self):
-        with self.assertRaises(KeyError):
-            entities.Instance(
-                session_id='banana',
-                public_ip_addr='127.0.0.1'
+                session_id='banana'
             )
 
     def test_mantadory_fields(self):
         entities.Instance(
             session_id='banana',
-            public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost'
+            public_ip_addr='127.0.0.1'
         )
 
     def test_add_network(self):
         entityA = entities.Instance(
             session_id='banana',
-            public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost'
+            public_ip_addr='127.0.0.1'
         )
         entityA.add_network('192.168.1.12', iface='eth0',
                             bcast_addr='192.168.1.255')
@@ -82,7 +71,6 @@ class TestInstance(unittest2.TestCase):
         entityB = entities.Instance(
             session_id='banana',
             public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost',
             networks=[
                 {
                     'addr': '192.168.1.12',
