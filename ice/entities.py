@@ -99,6 +99,7 @@ class Instance(Entity):
         self.public_reverse_dns = kwargs.get('public_reverse_dns', '')
 
         # SSH options
+        self.ssh_port = int(kwargs.get('ssh_port', 22))
         self.ssh_username = kwargs.get('ssh_username', '')
         self.ssh_authorized_fingerprint = kwargs.get(
             'ssh_authorized_fingerprint', ''

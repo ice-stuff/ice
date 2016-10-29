@@ -53,6 +53,10 @@ class InstancesDomain(Domain):
             },
 
             # SSH options
+            'ssh_port': {
+                'required': False,
+                'type': 'integer'
+            },
             'ssh_username': {
                 'required': False,
                 'type': 'string'
