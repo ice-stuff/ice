@@ -213,6 +213,21 @@ class TestRun(unittest2.TestCase):
             settings_mock.assert_setting('hosts', ['ice@host1', 'ice@host2'])
             settings_mock.assert_setting('key_filename', '/path/to/id_rsa')
 
+    def test_fabric_settings_with_custom_ssh(self):
+        mock_runner = mock.MagicMock(return_value='runner-return-value')
+        self.exp.module.run_a = tasks.Runner(mock_runner)
+
+        inst_1 = self._make_instance('host1')
+        inst_1.ssh_port = 2222
+        inst_1.ssh_username = 'ubuntu'
+        inst_2 = self._make_instance('host2')
+        with SettingsMock(self) as settings_mock:
+            self.exp.run([inst_1, inst_2], self.ssh_cfg, func_name='run_a'),
+            settings_mock.assert_setting('hosts', [
+                'ubuntu@host1:2222', 'ice@host2'
+            ])
+            settings_mock.assert_setting('key_filename', '/path/to/id_rsa')
+
     def test_runner_no_args(self):
         mock_runner = mock.MagicMock(return_value='runner-return-value')
         self.exp.module.run_a = tasks.Runner(mock_runner)

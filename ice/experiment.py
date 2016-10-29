@@ -190,4 +190,10 @@ class Experiment(object):
                 return fabric_api.execute(func, *args)
 
     def _get_host_string(self, ssh_cfg, inst):
-        return '{:s}@{:s}'.format(ssh_cfg.username, inst.public_reverse_dns)
+        username = ssh_cfg.username
+        if inst.ssh_username != '':
+            username = inst.ssh_username
+        host_string = '{:s}@{:s}'.format(username, inst.public_reverse_dns)
+        if inst.ssh_port != 22:
+            host_string += ':{:d}'.format(inst.ssh_port)
+        return host_string
