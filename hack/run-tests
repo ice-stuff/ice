@@ -12,10 +12,85 @@ usage() {
   echo "run-tests -h            --- print help menu"
 }
 
-setup() {
+setup_mongo() {
   info "Starting MongoDB Docker container"
-  DOCKER_CONTAINER_ID=$(docker run -d --name test-ice-mongo -p 12222:27017 mongo)
+  cmd="docker "
+  cmd=$cmd" run"
+  cmd=$cmd" -d"
+  cmd=$cmd" --name test-ice-mongo"
+  cmd=$cmd" -p 12222:27017"
+  cmd=$cmd" mongo"
+  debug "About to run '$cmd'"
+  DOCKER_CONTAINER_ID=$(eval $cmd)
   info "Container is '$DOCKER_CONTAINER_ID'"
+}
+
+setup_docker_cache() {
+  info "Pulling alpine image to warm the Docker cache"
+  info "--------- Docker output START ---------"
+  docker pull alpine:latest
+  docker pull quay.io/macropin/sshd:latest
+  info "--------- Docker output END ---------"
+}
+
+is_mac() {
+  [ $(uname -s) == "Darwin" ]
+}
+
+get_host_ip_fc() {
+  echo "10.200.10.1"
+}
+
+setup_docker_mac_net() {
+  info "Setting up host network with containers"
+  cmd="sudo ifconfig lo0 alias 10.200.10.1/24"
+  debug "About to run '$cmd'"
+  info "Your admin password may be required"
+  eval $cmd
+}
+
+setup_docker_linux_net() {
+  info "Setting up host network with containers"
+  cmd="ip addr add 10.200.10.1/24 dev lo"
+  debug "About to run '$cmd'"
+  info "Your admin password may be required"
+  eval $cmd
+}
+
+setup() {
+  setup_mongo
+
+  if [ $RUN_INTEGRATION -eq 1 ]; then
+    info "[INTEGRATION TEST SETUP]"
+    setup_docker_cache
+    if is_mac; then
+      setup_docker_mac_net
+    else
+      setup_docker_linux_net
+    fi
+  fi
+}
+
+run_integration() {
+  # command
+  cmd="behave"
+  cmd=$cmd" $BASE_PATH/testing/integration"
+  debug "About to run '$cmd'"
+
+  # envars
+  export TEST_ICE_MONGO_PORT=12222
+  export TEST_HOST_IP_FC=$(get_host_ip_fc)
+  [ $DEBUG -eq 1 ] && export TEST_ICE_DEBUG=1
+
+  # run tests but don't blow up
+  info "--------- Behave output START ---------"
+  set +e
+  eval $cmd
+  TESTS_EXIT_CODE=$?
+  set -e
+  info "--------- Behave output END ---------"
+
+  info "Behave exited with code $TESTS_EXIT_CODE"
 }
 
 run_nose() {
@@ -48,18 +123,54 @@ run_nose() {
   info "Nose exited with code $TESTS_EXIT_CODE"
 }
 
+teardown_mongo() {
+  debug "Removing MongoDB Docker container"
+  cmd="docker rm -f test-ice-mongo > /dev/null"
+  debug "About to run '$cmd'"
+  eval $cmd
+  info "MongoDB container has been cleaned up!"
+}
+
+teardown_docker_mac_net() {
+  info "Cleaning up network settings made for Docker containers"
+  cmd="sudo ifconfig lo0 -alias 10.200.10.1"
+  debug "About to run '$cmd'"
+  info "Your admin password may be required"
+  eval $cmd
+  info "The network has been cleaned up!"
+}
+
+teardown_docker_linux_net() {
+  info "Cleaning up network settings made for Docker containers"
+  cmd="ip addr del 10.200.10.1/24 dev lo"
+  debug "About to run '$cmd'"
+  info "Your admin password may be required"
+  eval $cmd
+  info "The network has been cleaned up!"
+}
+
 teardown() {
-  info "Removing MongoDB Docker container"
-  docker rm -f test-ice-mongo > /dev/null
-  info "The Docker container got cleaned up!"
+  teardown_mongo
+  if [ $RUN_INTEGRATION -eq 1 ]; then
+    info "[INTEGRATION TEST TEARDOWN]"
+    if is_mac; then
+      teardown_docker_mac_net
+    else
+      teardown_docker_linux_net
+    fi
+  fi
 }
 
 DEBUG=0
+RUN_INTEGRATION=0
 MODULE=""
 WITH_COVERAGE=0
-while getopts "m:cvh" OPTION
+while getopts "m:icvh" OPTION
 do
   case $OPTION in
+    i)
+      RUN_INTEGRATION=1
+      ;;
     m)
       MODULE=$OPTARG
       ;;
@@ -87,7 +198,11 @@ debug "verbose=$DEBUG"
 
 # some action...
 setup
-run_nose
+if [ $RUN_INTEGRATION -eq 1 ]; then
+  run_integration
+else
+  run_nose
+fi
 teardown
 
 exit $TESTS_EXIT_CODE
