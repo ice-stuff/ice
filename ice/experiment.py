@@ -10,7 +10,7 @@ class CfgSSH(object):
     """SSH configuration for the experiment runner"""
 
     def __init__(self, username, key_path):
-        """Creates an SSH configuration obkect.
+        """Creates an SSH configuration object.
 
         :param str username: The SSH username.
         :param str key_path: Path to the private SSH key.
