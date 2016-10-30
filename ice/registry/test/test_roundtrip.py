@@ -92,7 +92,10 @@ class TestInstanceLifecycle(ServerTestCase):
         self.inst = entities.Instance(
             session_id=self.sess.id,
             public_ip_addr='127.0.0.1',
-            public_reverse_dns='localhost'
+            public_reverse_dns='localhost',
+            tags={
+                'type': 'instance'
+            }
         )
 
     def test_submit_instance(self):

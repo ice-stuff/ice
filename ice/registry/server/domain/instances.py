@@ -64,5 +64,11 @@ class InstancesDomain(Domain):
             'ssh_authorized_fingerprint': {
                 'required': False,
                 'type': 'string'
+            },
+
+            # Tags
+            'tags': {
+                'required': False,
+                'type': 'dict'
             }
         }

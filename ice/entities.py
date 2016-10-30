@@ -69,7 +69,9 @@ class Instance(Entity):
     :type public_ip_addr: str
     :type public_reverse_dns: str
     :type ssh_username: str
+    :type ssh_port: int
     :type ssh_authorized_fingerprint: str
+    :type tags: dict
     """
 
     #
@@ -104,6 +106,9 @@ class Instance(Entity):
         self.ssh_authorized_fingerprint = kwargs.get(
             'ssh_authorized_fingerprint', ''
         )
+
+        # Tags
+        self.tags = kwargs.get('tags', {})
 
     #
     # Setters

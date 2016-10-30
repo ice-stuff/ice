@@ -52,12 +52,6 @@ class TestInstance(unittest2.TestCase):
                 session_id='banana'
             )
 
-    def test_mantadory_fields(self):
-        entities.Instance(
-            session_id='banana',
-            public_ip_addr='127.0.0.1'
-        )
-
     def test_add_network(self):
         entityA = entities.Instance(
             session_id='banana',
