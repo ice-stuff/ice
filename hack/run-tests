@@ -8,6 +8,8 @@ usage() {
   echo "run-tests               --- run all the tests"
   echo "run-tests -c            --- create coverage report"
   echo "run-tests -m <Module>   --- only run tests in given module"
+  echo "  only run tests in given file, when running integration tests"
+  echo "run-tests -i            --- run integration tests only"
   echo "run-tests -v            --- run tests in verbose mode"
   echo "run-tests -h            --- print help menu"
 }
@@ -74,7 +76,11 @@ setup() {
 run_integration() {
   # command
   cmd="behave"
-  cmd=$cmd" $BASE_PATH/testing/integration"
+  if [ "$MODULE" != "" ]; then
+    cmd=$cmd" $MODULE"
+  else
+    cmd=$cmd" $BASE_PATH/testing/integration"
+  fi
   debug "About to run '$cmd'"
 
   # envars
