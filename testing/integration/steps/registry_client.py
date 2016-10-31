@@ -19,7 +19,7 @@ def step_impl(context, session_key):
     ' in less than {timeout_secs} seconds' +
     ' in session \'{session_key}\''
 )
-def inst_wait_step_impl(context, amt, timeout_secs, session_key):
+def step_inst_wait_step(context, amt, timeout_secs, session_key):
     amt = int(amt)
     timeout_secs = int(timeout_secs)
 
@@ -45,3 +45,33 @@ def inst_wait_step_impl(context, amt, timeout_secs, session_key):
         ' Could not find the expected {:d} instances.'.format(amt) +
         ' Found {:d}.'.format(actual_amt)
     )
+
+
+@then(
+    'they have tag \'{tag_key}\'' +
+    ' with value \'{tag_value}\'' +
+    ' in session \'{session_key}\''
+)
+def step_tag_checking(context, tag_key, tag_value, session_key):
+    if session_key not in context.sessions:
+        raise AssertionError(
+            'No session named `{:s}` was found'.format(session_key)
+        )
+    session = context.sessions[session_key]
+
+    instances = context.registry_client.get_instances_list(session)
+    for inst in instances:
+        if tag_key not in inst.tags:
+            raise AssertionError(
+                'No tag with key `{:s}` was found in instance `{:s}`'.format(
+                    tag_key, inst.id
+                )
+            )
+        if inst.tags[tag_key] != tag_value:
+            raise AssertionError(
+                'Expecting tag `{:s}` to have value `{:s}`, '.format(
+                    tag_key, tag_value
+                ) + 'got `{:s}` in instance `{:s}`'.format(
+                    inst.tags[tag_key], inst.id
+                )
+            )

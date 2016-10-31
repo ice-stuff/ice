@@ -24,3 +24,27 @@ chmod +x ./ice-agent
             ' --session-id 1234abcd'
         expected_user_data += '\n'
         self.assertEquals(user_data, expected_user_data)
+
+    def test_with_tags(self):
+        # client will not try to connect to the endpoint
+        c = client.RegistryClient(client.CfgRegistryClient('localhost', 8080))
+
+        user_data = c.compile_user_data(
+            entities.Session(
+                _id='1234abcd',
+                client_ip_addr='80.10.100.200'
+            ),
+            client.CfgRegistryClient('public.ice.registry', 1234),
+            tag_a='val_a', tag_b='val_b'
+        )
+        expected_user_data = """#!/bin/sh -ex
+wget {:s} -O ./ice-agent
+chmod +x ./ice-agent
+""".format(client.ICE_AGENT_URL)
+        expected_user_data += './ice-agent register-self' + \
+            ' --api-endpoint http://public.ice.registry:1234' + \
+            ' --session-id 1234abcd' + \
+            ' --tag tag_a=val_a' + \
+            ' --tag tag_b=val_b'
+        expected_user_data += '\n'
+        self.assertEquals(user_data, expected_user_data)

@@ -113,7 +113,7 @@ class ContainerCreator():
         return buffer.getvalue()
 
 
-def _make_script(session_key, context):
+def _make_script(context, session_key, **tags):
     if session_key not in context.sessions:
         raise AssertionError(
             'No session named `{:s}` was found'.format(session_key)
@@ -126,13 +126,13 @@ def _make_script(session_key, context):
         host=host_ip_from_container, port=reg_cfg.port
     )
     return context.registry_client.compile_user_data(
-        session, container_reg_cfg
+        session, container_reg_cfg, **tags
     )
 
 
 @when('we spawn {amt} containers with sshd in session \'{session_key}\'')
-def step_impl_w_sshd(context, amt, session_key):
-    script = _make_script(session_key, context)
+def step_spawn_with_sshd(context, amt, session_key):
+    script = _make_script(context, session_key)
     pub_key = open(path.join(ASSETS_PATH, 'id_rsa.pub'), 'r').read()
     spec = ContainerSpec().with_image('quay.io/macropin/sshd:latest'). \
         with_command(
@@ -154,8 +154,28 @@ def step_impl_w_sshd(context, amt, session_key):
 
 
 @when('we spawn {amt} containers in session \'{session_key}\'')
-def step_impl(context, amt, session_key):
-    script = _make_script(session_key, context)
+def step_spawn(context, amt, session_key):
+    script = _make_script(context, session_key)
+    spec = ContainerSpec().with_image('alpine:latest'). \
+        with_command('/tmp/register-self.sh'). \
+        with_file('/tmp/register-self.sh', 0755, script)
+
+    creator = ContainerCreator()
+    for idx in range(0, int(amt)):
+        container = creator.create(spec)
+        container.start()
+        context.spawned_containers.append(container)
+
+
+@when(
+    'we spawn {amt} containers' +
+    ' with tag \'{tag_key}\' having the value \'{tag_value}\'' +
+    ' in session \'{session_key}\''
+)
+def step_spawn_with_tag(context, amt, session_key, tag_key, tag_value):
+    script = _make_script(context, session_key, **{
+        tag_key: tag_value
+    })
     spec = ContainerSpec().with_image('alpine:latest'). \
         with_command('/tmp/register-self.sh'). \
         with_file('/tmp/register-self.sh', 0755, script)

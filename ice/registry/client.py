@@ -5,7 +5,7 @@ import redo
 import ice
 from ice import entities
 
-ICE_AGENT_URL = 'http://dl.bintray.com/glestaris/iCE/v2.1.0-rc.4/ice-agent'
+ICE_AGENT_URL = 'http://dl.bintray.com/glestaris/iCE/v2.1.0-rc.5/ice-agent'
 
 
 class CfgRegistryClient(object):
@@ -231,11 +231,13 @@ class RegistryClient:
     #
 
     # TODO: consider splitting this method out of RegistryClient class.
-    def compile_user_data(self, sess, cfg):
+    def compile_user_data(self, sess, cfg, **tags):
         """Compiles the user-data string for new VMs.
 
         :param ice.entities.Session sess: Active iCE session.
         :param ice.registry.client.CfgRegistryClient cfg: iCE client config.
+        :param string tags: Any keyword argument, not mentioned here, will be
+            considered a tag.
         :rtype: str
         :return: Base64 encoded user data.
         """
@@ -246,6 +248,8 @@ chmod +x ./ice-agent
         user_data += './ice-agent register-self' + \
             ' --api-endpoint http://{:s}:{:d}'.format(cfg.host, cfg.port) + \
             ' --session-id {:s}'.format(sess.id)
+        for key, value in tags.items():
+            user_data += ' --tag {:s}={:s}'.format(key, value)
         user_data += '\n'
 
         return user_data
