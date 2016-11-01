@@ -5,7 +5,7 @@ import redo
 import ice
 from ice import entities
 
-ICE_AGENT_URL = 'http://dl.bintray.com/glestaris/iCE/v2.1.0-rc.5/ice-agent'
+ICE_AGENT_URL = 'http://dl.bintray.com/glestaris/iCE/v2.1.0/ice-agent'
 
 
 class CfgRegistryClient(object):
