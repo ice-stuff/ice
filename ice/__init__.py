@@ -12,4 +12,4 @@ from .tasks import Callable, Runner, ParallelRunner, Task, ParallelTask
 # iCE Version
 #
 
-__version__ = '2.1.0'
+__version__ = '2.1.1'
