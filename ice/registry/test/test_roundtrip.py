@@ -71,12 +71,19 @@ class TestSessionLifecycle(ServerTestCase):
         recv_sess = self.client.get_session(sess_id)
         self.assertEquals(self.sess.to_dict(), recv_sess.to_dict())
 
+    def test_get_session_when_it_does_not_exist(self):
+        self.assertIsNone(self.client.get_session('foo-bar'))
+
     def test_delete_session(self):
         sess_id = self.client.submit_session(self.sess)
 
         self.client.delete_session(self.sess)
 
         self.assertIsNone(self.client.get_session(sess_id))
+
+    def test_delete_session_when_it_does_not_exist(self):
+        sess = entities.Session(id='foo-bar', client_ip_addr='127.0.0.1')
+        self.assertEquals(self.client.delete_session(sess), False)
 
 
 class TestInstanceLifecycle(ServerTestCase):
@@ -108,6 +115,9 @@ class TestInstanceLifecycle(ServerTestCase):
         recv_inst = self.client.get_instance(inst_id)
         self.assertEquals(self.inst.to_dict(), recv_inst.to_dict())
 
+    def test_get_instance_when_it_does_not_exist(self):
+        self.assertIsNone(self.client.get_instance('foo-bar'))
+
     def test_delete_instance(self):
         inst_id = self.client.submit_instance(self.inst)
 
@@ -115,6 +125,15 @@ class TestInstanceLifecycle(ServerTestCase):
 
         recv_inst = self.client.get_instance(inst_id)
         self.assertIsNone(recv_inst)
+
+    def test_delete_instance_when_it_does_not_exist(self):
+        inst = entities.Instance(
+            id='foo-bar', 
+            session_id='another-foo-bar',
+            public_ip_addr='127.0.0.1',
+            public_reverse_dns='localhost'
+        )
+        self.assertEquals(self.client.delete_instance(inst), False)
 
     def test_delete_session_delets_instances(self):
         inst_id = self.client.submit_instance(self.inst)

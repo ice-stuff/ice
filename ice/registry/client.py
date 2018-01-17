@@ -187,7 +187,13 @@ class RegistryClient:
         :rtype: bool
         :return: `True` on success and `False` otherwise.
         """
-        self._call('instances/%s' % inst.id, 'DELETE')
+        try:
+            resp = self._call('instances/%s' % inst.id, 'DELETE')
+            if resp is None:
+                return False
+            return True
+        except RegistryClient.APIException:
+            return False
 
     def get_instances_list(self, session=None):
         """
